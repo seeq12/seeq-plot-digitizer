@@ -160,7 +160,6 @@ def create_and_push_formula(
         'Formula':formula_string,
         'Formula Parameters':signal_notator_to_id_dict, 
         'Type':'Signal',
-        'Asset':asset_id
     }
 
     bodies = [body]
