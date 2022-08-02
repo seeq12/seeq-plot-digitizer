@@ -13,7 +13,8 @@ from ._utils import (
 __all__ = (
     'get_workbook', 'get_worksheet', 'get_asset', 'update_pltdgtz_property',
     'get_pltdgtz_property', 'get_available_asset_names_to_item_id_dict',
-    'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id'
+    'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
+    'get_plot_digitizer_storage_dict', 'NoParentAsset'
 )
 
 
@@ -202,7 +203,7 @@ def create_and_push_formula(
     # formula name
     formula_name = '{}: {}'.format(curveSet, curveName)
     
-    formula_formatter = """PlotDigitizer_StringTest({}, {}, 
+    formula_formatter = """PlotDigitizer_Show2({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
@@ -241,44 +242,19 @@ def modify_workstep(
     formula_push_results:'pandas.DataFrame',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi',
     workbooks_api:'seeq.sdk.apis.workbooks_api.WorkbooksApi',
-    x_range:'tuple', y_range:'tuple'):
+    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str'):
+    
     old_display = worksheet.display_items[['Name', 'ID', 'Type']].copy()
     
-    # TODO: FIX XAXIS ID
-    try:
-        x_axis_id = old_display.iloc[0].ID
-        y_axis_id = old_display.iloc[1].ID
-    except IndexError:
-        raise IndexError('Must have at least two signals on the screen')
-    asset_id = get_asset(x_axis_id, trees_api=trees_api).id
     
     # get formula parameters
     formula_name = formula_push_results.iloc[0].Name
     formula_id = formula_push_results.iloc[0].ID
-    
-    # specify items to add to display
-#     add_display = pd.DataFrame(
-#         dict(
-#             Name=formula_name, 
-#             ID=formula_id,
-#             Type='Signal'
-#         ), 
-#         index=[0]
-#     )
-    
-    # update display items
-#     new_display_items = pd.concat(
-#         (old_display, add_display)
-#     ).reset_index(drop=True)
-    
-#     worksheet.display_items = new_display_items
+
     
     # get the current workstep and stores for updating
     current_workstep = worksheet.current_workstep()
-#     workstep_data = current_workstep.data.copy()
-#     stores = workstep_data['state']['stores']
     workstep_data = duplicate_current_workstep_data(current_workstep)
-#     stores = current_workstep.get_workstep_stores()
     stores = workstep_data['state']['stores']
     add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
     
