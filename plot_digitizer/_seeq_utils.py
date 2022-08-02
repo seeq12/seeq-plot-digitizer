@@ -12,8 +12,8 @@ from ._utils import (
 
 __all__ = (
     'get_workbook', 'get_worksheet', 'get_asset', 'update_pltdgtz_property',
-    'get_pltdgtz_property', 'get_selected_curve_points', 'get_available_asset_names_to_item_id_dict',
-    'create_and_push_formula', 'modify_workstep'
+    'get_pltdgtz_property', 'get_available_asset_names_to_item_id_dict',
+    'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id'
 )
 
 
@@ -52,35 +52,104 @@ def get_asset(
         return ancestors[-1]
     except IndexError:
         return None
+    
+def create_scalar(name, formula, scalars_api)->'seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1':
+    body = sdk.ScalarInputV1(name=name, formula=formula, unit_of_measure='string')
+    returned = scalars_api.create_calculated_scalar(body=body)
+    return returned
+
+def get_scalar(id:'str', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    return scalars_api.get_scalar(id=id)
+
+def get_plot_digitizer_storage_dict(
+    scalar:'{str, seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1}',
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi')->'dict':
+    if type(scalar) is str:
+        scalar = get_scalar(id=scalar, scalars_api=scalars_api)
+        
+    starter = scalar.formula[0]
+    return json.loads(scalar.formula.replace(starter, ""))
+
+def update_scalar_formula(
+    scalar:'{str, seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1}',
+    formula:'str',
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    
+    if type(scalar) is str:
+        scalar = get_scalar(scalar, scalars_api)
+    
+    body = {
+      "datasourceClass": scalar.datasource_class,
+      "scalars": [
+        {
+          "datasourceClass": scalar.datasource_class,
+          "dataId": scalar.data_id,
+          "datasourceId": scalar.datasource_id,
+          "name": scalar.name,
+          "formula": formula
+        }
+      ],
+      "datasourceId": scalar.datasource_id
+    }
+    
+    returned = scalars_api.put_scalars(
+        body=body
+    )
+    return returned
+
+def get_plot_digitizer_storage_id(asset_id:'str', 
+                                  scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi',
+                                  quiet=True)->'str':
+    name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
+    search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    
+    if len(search_results) == 1:
+        _id = search_results.ID.iloc[0]
+    elif len(search_results) == 0:
+        # create the condition
+        create_return = create_scalar(
+            name=name,
+            formula="'{}'".format(json.dumps({})),
+            scalars_api=scalars_api
+        )
+        _id = create_return.id
+    else:
+        raise Exception("Multiple Plot digitizer storage scalars with id {}".format(asset_id))
+    
+    return _id
+
+def update_plot_digitizer_storage(updater_dict:'dict', storage_id:'str', 
+                                  scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    # get the existing one, if None, create
+    scalar = get_scalar(storage_id, scalars_api)
+    existing = get_plot_digitizer_storage_dict(storage_id, scalars_api)
+    
+    for key, v in updater_dict.items():
+        if key in existing:
+            existing[key].update(v)
+        else:
+            existing.update({key:v})
+    out = update_scalar_formula(
+        scalar, 
+        "'{}'".format(
+            json.dumps(existing)
+        ), 
+        scalars_api
+    )
+        
+    return out
 
 
 def update_pltdgtz_property(
-    asset:'seeq.sdk.models.item_preview_v1.ItemPreviewV1', 
+    storage_id:'str', 
     selected_points_df:'pandas.DataFrame', 
     curve_set:'str', curve_name:'str', 
-    items_api:'seeq.sdk.apis.items_api.ItemsApi'):
-
-    existing_pltdgtz = get_pltdgtz_property(asset, items_api)
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
 
     stringified_selected_points = stringify_selected_points(selected_points_df)
-
-    if existing_pltdgtz is None:
-        value = {curve_set:{curve_name:stringified_selected_points}}
-        value = curvesets_to_json(value)
-    else:
-        current_value = json_to_curvesets(existing_pltdgtz.value)
-        try:
-            curve_set_dict = current_value[curve_set]
-            curve_set_dict.update({curve_name: stringified_selected_points})
-        except KeyError:
-            current_value.update({curve_set:{curve_name: stringified_selected_points}})
-
-        value = curvesets_to_json(current_value)
-
-    body = sdk.PropertyInputV1(
-        unit_of_measure='string', value=value
-    )
-    items_api.set_property(id=asset.id, property_name=PROPERTY_NAME, body=body)
+    updater_dict = {curve_set:{curve_name:stringified_selected_points}}
+    update_plot_digitizer_storage(updater_dict, storage_id, scalars_api)
+    
     return 
 
 def get_pltdgtz_property(
@@ -97,21 +166,6 @@ def get_pltdgtz_property(
         return p
 
     return None
-
-def get_selected_curve_points(asset:'{str, seeq.sdk.models.item_preview_v1.ItemPreviewV1}', 
-                              curve_set:'str', curve_name:'str', 
-                              items_api:'seeq.sdk.apis.items_api.ItemsApi', delimiter='||'):
-
-    prop = get_pltdgtz_property(asset, items_api)
-    if prop is None:
-        raise NameError(
-            'No property corresponding to curve_set={}, curve_name={} in asset with id {}'.format(
-                curve_set, curve_name, asset
-            )
-        )
-    curve_sets_dict = json_to_curvesets(prop.value)
-
-    return destringify_points(curve_sets_dict[curve_set][curve_name])
 
 
 def get_available_asset_names_to_item_id_dict(
@@ -133,27 +187,27 @@ def get_available_asset_names_to_item_id_dict(
     return available_asset_names_to_item_id
 
 def create_and_push_formula(
-    curve_set:'str', curve_name:'str', asset_id:'str', 
-    auth_token:'str', x_axis_id:'str', quiet:'bool'=True):
+    curve_set:'str', curve_name:'str', storage_id:'str', 
+    x_axis_id:'str', quiet:'bool'=True):
     
-    signal_notator = '$a'
+    # generate the first formula to pass the plot digitizer storage to external calc
+    template = """$pdz.toSignal()"""
+    
+    signal_notator = '$x'
     curveSet = curve_set
     curveName = curve_name
-    authToken = auth_token
-    assetId = asset_id
 
-    signal_notator_to_id_dict = {signal_notator:x_axis_id}
+    signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
 
     # formula name
-    formula_name = '{}, {}'.format(curveSet, curveName)
+    formula_name = '{}: {}'.format(curveSet, curveName)
     
-    formula_formatter = """PlotDigitizer_Show({}, 
+    formula_formatter = """PlotDigitizer_StringTest({}, {}, 
     "{}".toSignal(), 
-    "{}".toSignal(), 
-    "{}".toSignal(), 
-    "{}".toSignal())"""
+    "{}".toSignal()
+)"""
     
-    formula_string = formula_formatter.format(signal_notator, assetId, curveSet, curveName, authToken)
+    formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
     
     body={
         'Name':formula_name, 
