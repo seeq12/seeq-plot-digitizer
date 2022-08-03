@@ -295,18 +295,20 @@ def modify_workstep(
         {
             'viewRegion':{
                 'x': {
-                    'min': x_min, 
-                    'max': x_max
+                    'min': min(x_min, existing_x_range[0]), 
+                    'max': max(x_max, existing_x_range[1])
                 }, 
                 'ys': {
                     y_axis_id: {
-                        'min': y_min,
-                        'max': y_max
+                        'min': min(y_min, existing_y_range[0]), 
+                        'max': max(y_max, existing_y_range[1])
                     }
                 }
             }
         }
     )
+    
+    print(stores['sqScatterPlotStore'])
     
     fx_lines = stores['sqScatterPlotStore']['fxLines']
     fx_lines.append({'id': formula_id, 'color':'#000000'})
