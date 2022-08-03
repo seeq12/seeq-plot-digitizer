@@ -110,6 +110,7 @@ def get_plot_digitizer_storage_id(asset_id:'str',
         # region of interest case
         name = '{}.PlotDigitizerROIStorage'.format(asset_id)
         search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+        
     
     if len(search_results) == 1:
         _id = search_results.ID.iloc[0]
@@ -259,7 +260,7 @@ def create_and_push_formula(
             'Name':formula_name, 
             'Formula':formula_string,
             'Formula Parameters':signal_notator_to_id_dict, 
-            'Type':'Condition',
+            'Type': 'Condition'
         }
 
         bodies = [body]
@@ -281,13 +282,18 @@ def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
     workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
     return
 
+def add_condition_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
+    workstep_stores['sqTrendCapsuleSetStore']['items'].append({'id':id, 'name':name})
+    return
+
 def modify_workstep(
     workbook:'seeq.spy.workbooks._workbook.Analysis',
     worksheet:'seeq.spy.workbooks._worksheet.AnalysisWorksheet',
     formula_push_results:'pandas.DataFrame',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi',
     workbooks_api:'seeq.sdk.apis.workbooks_api.WorkbooksApi',
-    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str'):
+    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str',
+    REGION_OF_INTEREST:'bool'):
     
     old_display = worksheet.display_items[['Name', 'ID', 'Type']].copy()
     
@@ -301,7 +307,10 @@ def modify_workstep(
     current_workstep = worksheet.current_workstep()
     workstep_data = duplicate_current_workstep_data(current_workstep)
     stores = workstep_data['state']['stores']
-    add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    if REGION_OF_INTEREST:
+        add_condition_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    else:
+        add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
     
     # update scatter plot
     xSignal_dict = stores['sqScatterPlotStore']['xSignal']
@@ -354,13 +363,16 @@ def modify_workstep(
     )
     
     
-    fx_lines = stores['sqScatterPlotStore']['fxLines']
-    fx_lines.append({'id': formula_id, 'color':'#000000'})
-    
-    # update f(x)
-    stores['sqScatterPlotStore'].update({
-        'fxLines': fx_lines
-    })
+    if not REGION_OF_INTEREST:
+        fx_lines = stores['sqScatterPlotStore']['fxLines']
+        fx_lines.append({'id': formula_id, 'color':'#000000'})
+
+        # update f(x)
+        stores['sqScatterPlotStore'].update({
+            'fxLines': fx_lines
+        })
+    else:
+        stores['sqScatterPlotStore']['colorConditionIds'].append(formula_id)
 
     # push results
 #     print(workstep_data)
