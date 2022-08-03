@@ -100,9 +100,16 @@ def update_scalar_formula(
 
 def get_plot_digitizer_storage_id(asset_id:'str', 
                                   scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi',
+                                  REGION_OF_INTEREST:'bool',
                                   quiet=True)->'str':
-    name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
-    search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    if not REGION_OF_INTEREST:
+        # original case of simple plot digitization
+        name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    else:
+        # region of interest case
+        name = '{}.PlotDigitizerROIStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
     
     if len(search_results) == 1:
         _id = search_results.ID.iloc[0]
@@ -189,40 +196,78 @@ def get_available_asset_names_to_item_id_dict(
 
 def create_and_push_formula(
     curve_set:'str', curve_name:'str', storage_id:'str', 
-    x_axis_id:'str', quiet:'bool'=True):
+    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True):
     
-    # generate the first formula to pass the plot digitizer storage to external calc
-    template = """$pdz.toSignal()"""
-    
-    signal_notator = '$x'
-    curveSet = curve_set
-    curveName = curve_name
+    if not REGION_OF_INTEREST:
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
 
-    signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
+        signal_notator = '$x'
+        curveSet = curve_set
+        curveName = curve_name
 
-    # formula name
-    formula_name = '{}: {}'.format(curveSet, curveName)
-    
-    formula_formatter = """PlotDigitizer_Show2({}, {}, 
+        signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {}'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_Show2({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
-    
-    formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
-    
-    body={
-        'Name':formula_name, 
-        'Formula':formula_string,
-        'Formula Parameters':signal_notator_to_id_dict, 
-        'Type':'Signal',
-    }
 
-    bodies = [body]
+        formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
 
-    metatag = pd.DataFrame(bodies)
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type':'Signal',
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
     
-    results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
-    return results
+    else:
+        if y_axis_id is None:
+            raise TypeError('No yaxis id supplied')
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
+
+        xsignal_notator = '$x'
+        ysignal_notator = '$y'
+        curveSet = curve_set
+        curveName = curve_name
+
+        signal_notator_to_id_dict = {xsignal_notator:x_axis_id, ysignal_notator:y_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {} (ROI)'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_ROI({}, {}, {},
+    "{}".toSignal(), 
+    "{}".toSignal()
+).toCondition()"""
+
+        formula_string = formula_formatter.format(xsignal_notator, ysignal_notator, template, curveSet, curveName)
+
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type':'Condition',
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
 
 def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.AnalysisWorkstep')->'dict':
     """Return a copy of the workstep data dict"""
