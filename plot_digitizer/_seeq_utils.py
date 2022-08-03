@@ -308,7 +308,6 @@ def modify_workstep(
         }
     )
     
-    print(stores['sqScatterPlotStore'])
     
     fx_lines = stores['sqScatterPlotStore']['fxLines']
     fx_lines.append({'id': formula_id, 'color':'#000000'})
