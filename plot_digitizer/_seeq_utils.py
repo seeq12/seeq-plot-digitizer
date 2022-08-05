@@ -100,9 +100,17 @@ def update_scalar_formula(
 
 def get_plot_digitizer_storage_id(asset_id:'str', 
                                   scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi',
+                                  REGION_OF_INTEREST:'bool',
                                   quiet=True)->'str':
-    name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
-    search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    if not REGION_OF_INTEREST:
+        # original case of simple plot digitization
+        name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    else:
+        # region of interest case
+        name = '{}.PlotDigitizerROIStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+        
     
     if len(search_results) == 1:
         _id = search_results.ID.iloc[0]
@@ -189,40 +197,78 @@ def get_available_asset_names_to_item_id_dict(
 
 def create_and_push_formula(
     curve_set:'str', curve_name:'str', storage_id:'str', 
-    x_axis_id:'str', quiet:'bool'=True):
+    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True):
     
-    # generate the first formula to pass the plot digitizer storage to external calc
-    template = """$pdz.toSignal()"""
-    
-    signal_notator = '$x'
-    curveSet = curve_set
-    curveName = curve_name
+    if not REGION_OF_INTEREST:
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
 
-    signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
+        signal_notator = '$x'
+        curveSet = curve_set
+        curveName = curve_name
 
-    # formula name
-    formula_name = '{}: {}'.format(curveSet, curveName)
-    
-    formula_formatter = """PlotDigitizer_Show2({}, {}, 
+        signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {}'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_Show2({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
-    
-    formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
-    
-    body={
-        'Name':formula_name, 
-        'Formula':formula_string,
-        'Formula Parameters':signal_notator_to_id_dict, 
-        'Type':'Signal',
-    }
 
-    bodies = [body]
+        formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
 
-    metatag = pd.DataFrame(bodies)
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type':'Signal',
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
     
-    results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
-    return results
+    else:
+        if y_axis_id is None:
+            raise TypeError('No yaxis id supplied')
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
+
+        xsignal_notator = '$x'
+        ysignal_notator = '$y'
+        curveSet = curve_set
+        curveName = curve_name
+
+        signal_notator_to_id_dict = {xsignal_notator:x_axis_id, ysignal_notator:y_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {} (ROI)'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_ROI({}, {}, {},
+    "{}".toSignal(), 
+    "{}".toSignal()
+).toCondition()"""
+
+        formula_string = formula_formatter.format(xsignal_notator, ysignal_notator, template, curveSet, curveName)
+
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type': 'Condition'
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
 
 def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.AnalysisWorkstep')->'dict':
     """Return a copy of the workstep data dict"""
@@ -232,8 +278,22 @@ def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.Analy
     new_stores = json.loads(stores_str)
     return {'version':version, 'state':{'stores':new_stores}}
 
-def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
-    workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+def find_lane_for_yaxis_id(y_axis_id:'str', items:'[dict]'):
+    for item in items:
+        if item['id'] == y_axis_id:
+            return item['lane']
+        
+    raise ValueError('Cannot find y_axis_id {} in workstep stores.'.format(y_axis_id))
+
+def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str', lane:'int'=None):
+    if lane is None:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+    else:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name, 'lane':lane})
+    return
+
+def add_condition_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
+    workstep_stores['sqTrendCapsuleSetStore']['items'].append({'id':id, 'name':name})
     return
 
 def modify_workstep(
@@ -242,7 +302,8 @@ def modify_workstep(
     formula_push_results:'pandas.DataFrame',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi',
     workbooks_api:'seeq.sdk.apis.workbooks_api.WorkbooksApi',
-    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str'):
+    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str',
+    REGION_OF_INTEREST:'bool'):
     
     old_display = worksheet.display_items[['Name', 'ID', 'Type']].copy()
     
@@ -256,7 +317,11 @@ def modify_workstep(
     current_workstep = worksheet.current_workstep()
     workstep_data = duplicate_current_workstep_data(current_workstep)
     stores = workstep_data['state']['stores']
-    add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    if REGION_OF_INTEREST:
+        add_condition_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    else:
+        lane = find_lane_for_yaxis_id(y_axis_id, stores['sqTrendSeriesStore']['items'])
+        add_series_to_workstep_stores(stores, id=formula_id, name=formula_name, lane=lane)
     
     # update scatter plot
     xSignal_dict = stores['sqScatterPlotStore']['xSignal']
@@ -309,13 +374,16 @@ def modify_workstep(
     )
     
     
-    fx_lines = stores['sqScatterPlotStore']['fxLines']
-    fx_lines.append({'id': formula_id, 'color':'#000000'})
-    
-    # update f(x)
-    stores['sqScatterPlotStore'].update({
-        'fxLines': fx_lines
-    })
+    if not REGION_OF_INTEREST:
+        fx_lines = stores['sqScatterPlotStore']['fxLines']
+        fx_lines.append({'id': formula_id, 'color':'#000000'})
+
+        # update f(x)
+        stores['sqScatterPlotStore'].update({
+            'fxLines': fx_lines
+        })
+    else:
+        stores['sqScatterPlotStore']['colorConditionIds'].append(formula_id)
 
     # push results
 #     print(workstep_data)
