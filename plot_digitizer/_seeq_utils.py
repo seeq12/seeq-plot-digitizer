@@ -278,8 +278,18 @@ def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.Analy
     new_stores = json.loads(stores_str)
     return {'version':version, 'state':{'stores':new_stores}}
 
-def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
-    workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+def find_lane_for_yaxis_id(y_axis_id:'str', items:'[dict]'):
+    for item in items:
+        if item['id'] == y_axis_id:
+            return item['lane']
+        
+    raise ValueError('Cannot find y_axis_id {} in workstep stores.'.format(y_axis_id))
+
+def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str', lane:'int'=None):
+    if lane is None:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+    else:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name, 'lane':lane})
     return
 
 def add_condition_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
@@ -310,7 +320,8 @@ def modify_workstep(
     if REGION_OF_INTEREST:
         add_condition_to_workstep_stores(stores, id=formula_id, name=formula_name)
     else:
-        add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
+        lane = find_lane_for_yaxis_id(y_axis_id, stores['sqTrendSeriesStore']['items'])
+        add_series_to_workstep_stores(stores, id=formula_id, name=formula_name, lane=lane)
     
     # update scatter plot
     xSignal_dict = stores['sqScatterPlotStore']['xSignal']
