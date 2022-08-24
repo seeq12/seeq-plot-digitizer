@@ -14,7 +14,7 @@ __all__ = (
     'get_workbook', 'get_worksheet', 'get_asset', 'update_pltdgtz_property',
     'get_pltdgtz_property', 'get_available_asset_names_to_item_id_dict',
     'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
-    'get_plot_digitizer_storage_dict', 'NoParentAsset'
+    'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset'
 )
 
 
@@ -197,7 +197,7 @@ def get_available_asset_names_to_item_id_dict(
 
 def create_and_push_formula(
     curve_set:'str', curve_name:'str', storage_id:'str', 
-    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True):
+    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
     
     if not REGION_OF_INTEREST:
         # generate the first formula to pass the plot digitizer storage to external calc
@@ -269,6 +269,33 @@ def create_and_push_formula(
 
         results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
         return results
+    
+def add_item_to_asset(asset_id:'str', item_name:'str', item_id:'str', 
+                      trees_api:'seeq.sdk.apis.trees_api.TreesApi',
+                      overwrite:'bool'=True
+                     ):
+    
+    if overwrite:
+        
+        # check for same names that already exist
+        tree = trees_api.get_tree(id=asset_id)
+        existing_ids_of_same_name = []
+        for child in tree.children:
+            if child.name == item_name:
+                existing_ids_of_same_name.append(child.id)
+                
+        # remove existing
+        for _id in existing_ids_of_same_name:
+            trees_api.remove_node_from_tree(id=_id)
+    
+    trees_api.move_nodes_to_parent(
+        parent_id=asset_id, 
+        body=sdk.ItemIdListInputV1(
+            items=[item_id]
+        )
+    )
+    
+    return
 
 def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.AnalysisWorkstep')->'dict':
     """Return a copy of the workstep data dict"""
