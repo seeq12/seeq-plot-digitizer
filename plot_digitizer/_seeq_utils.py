@@ -180,7 +180,6 @@ def get_pltdgtz_property(
 def get_available_asset_names_to_item_id_dict(
     worksheet:'seeq.spy.workbooks._worksheet.AnalysisWorksheet',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi') -> 'dict':
-    """after calling get_available_asset_names_to_item_id_dict(worksheet), use the returned dict value in get_asset()"""
 
     available_asset_names_to_item_id = dict()
 
@@ -188,7 +187,7 @@ def get_available_asset_names_to_item_id_dict(
         asset = get_asset(item_id, trees_api)
         if asset is None:
             continue
-        available_asset_names_to_item_id.update({asset.name:item_id})
+        available_asset_names_to_item_id.update({asset.name:asset.id})
         
         if len(available_asset_names_to_item_id) == 0:
             raise NoParentAsset('No items with parent assets in worksheet.')
