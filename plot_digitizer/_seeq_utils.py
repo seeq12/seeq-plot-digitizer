@@ -14,7 +14,9 @@ __all__ = (
     'get_workbook', 'get_worksheet', 'get_asset', 'update_pltdgtz_property',
     'get_pltdgtz_property', 'get_available_asset_names_to_item_id_dict',
     'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
-    'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset'
+    'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset',
+    'update_plot_digitizer_storage', 'delete_empty_plot_digitizer_storage',
+    'create_scalar'
 )
 
 
@@ -100,7 +102,7 @@ def update_scalar_formula(
 
 def get_plot_digitizer_storage_id(asset_id:'str', 
                                   scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi',
-                                  REGION_OF_INTEREST:'bool',
+                                  REGION_OF_INTEREST:'bool', delete_empty=True,
                                   quiet=True)->'str':
     if not REGION_OF_INTEREST:
         # original case of simple plot digitization
@@ -123,6 +125,13 @@ def get_plot_digitizer_storage_id(asset_id:'str',
         )
         _id = create_return.id
     else:
+        if delete_empty:
+            
+            delete_empty_plot_digitizer_storage(search_results, scalars_api)
+            return get_plot_digitizer_storage_id(
+                asset_id, scalars_api, REGION_OF_INTEREST, delete_empty=False, quiet=quiet
+            )
+        
         raise Exception("Multiple Plot digitizer storage scalars with id {}".format(asset_id))
     
     return _id
@@ -321,6 +330,52 @@ def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str', 
 def add_condition_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
     workstep_stores['sqTrendCapsuleSetStore']['items'].append({'id':id, 'name':name})
     return
+
+def delete_empty_plot_digitizer_storage(
+    storage_search_results:'pd.DataFrame', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'
+)->'str':
+    for _id in storage_search_results.ID.values:
+        tdict = get_plot_digitizer_storage_dict(_id, scalars_api)
+        if tdict == {}:
+            delete_scalar(_id, scalars_api)
+    return
+
+def merge_plot_digitizer_storage_dicts(existing, new):
+    """Any matching keys at the curve set level will be updated with '_vX' at the end."""
+    clashing_keys = set(existing.keys()).intersection(set(new.keys()))
+    for key in clashing_keys:
+        existing.update({'{}_v1'.format(key):existing.pop(key)})
+        existing.update({'{}_v2'.format(key):new.pop(key)})
+
+    existing.update(new)
+    return existing
+
+def delete_scalar(ID:'str', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    scalars_api.archive_scalar(id=ID)
+    return
+
+def aggregate_existing_plot_digitizer_storages(
+    storage_search_results:'pd.DataFrame', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'
+)->'str':
+    """For each ID in storage search results, aggregate their dictionaries.
+    Any matching keys AT THE CURVE SET level will be updated with '_vX' at the end.
+    Delete all but final ID, update plot digitizer storage on the final ID
+    """
+    
+    # merge existing dicts:
+    out = {}
+    for _id in storage_search_results.ID.values:
+        tdict = get_plot_digitizer_storage_dict(_id, scalars_api)
+        out = merge_plot_digitizer_storage_dicts(out, tdict)
+        
+    # delete all but last id:
+    for _id in storage_search_results.ID.values[:-1]:
+        delete_scalar(_id, scalars_api)
+    
+    out_id = storage_search_results.ID.values[-1]
+    update_plot_digitizer_storage(out, out_id, scalars_api)
+    
+    return out_id
 
 def modify_workstep(
     workbook:'seeq.spy.workbooks._workbook.Analysis',
