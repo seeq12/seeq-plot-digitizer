@@ -64,7 +64,7 @@ td, th {
   padding: 1px;
 }
 
-tr:nth-child(even) {
+tr:nth-child(odd) {
   background-color: #dddddd;
 }
 </style>
@@ -79,20 +79,20 @@ tr:nth-child(even) {
     <th>Selection</th>
   </tr>
   <tr>
-    <td>X1</td>
-    <td>x1point</td>
+    <td style="color:blue"><b>X1</b></td>
+    <td style="color:blue">x1point</td>
   </tr>
   <tr>
-    <td>X2</td>
-    <td>x2point</td>
+    <td style="color:yellow"><b>X2</b></td>
+    <td style="color:yellow">x2point</td>
   </tr>
   <tr>
-    <td>Y1</td>
-    <td>y1point</td>
+    <td style="color:purple"><b>Y1</b></td>
+    <td style="color:purple">y1point</td>
   </tr>
   <tr>
-    <td>Y2</td>
-    <td>y2point</td>
+    <td style="color:green"><b>Y2</b></td>
+    <td style="color:green">y2point</td>
   </tr>
 </table>
 
