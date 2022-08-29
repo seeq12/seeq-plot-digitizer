@@ -89,7 +89,7 @@ class CubicSpline(interpolator):
     
     def __call__(self, x):
         if hasattr(x, '__iter__'):
-            return np.array([self.f(xi, X, Y) for xi in x], dtype='object')
+            return np.array([self.f(xi, self.X, self.Y) for xi in x], dtype='object')
         return self.f(x, self.X, self.Y)
     
     def get_S(self, X, Y):
