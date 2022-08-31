@@ -41,6 +41,13 @@ curve_select_instructions = """
     </div>
 """
 
+done_instructions = """
+    <div style="border:8px; border-style:solid; border-color:black; padding: 1em;">
+    <h3>Done.</h3>
+    <p>Done. You may digitize another curve / add a new region of interest (click "New Curve/ROI"), or, if done, close this window.</p>
+    </div>
+"""
+
 region_of_interest_instructions = """
     <div style="border:8px; border-style:solid; border-color:red; padding: 1em;">
     <h3>6. Instructions: Define the region of interest</h3>
