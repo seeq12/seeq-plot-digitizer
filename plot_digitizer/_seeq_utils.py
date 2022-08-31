@@ -16,7 +16,7 @@ __all__ = (
     'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
     'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset',
     'update_plot_digitizer_storage', 'delete_empty_plot_digitizer_storage',
-    'create_scalar'
+    'create_scalar', 'format_time_stamp_for_seeq_capsule', 'create_seeq_formula'
 )
 
 
@@ -203,6 +203,45 @@ def get_available_asset_names_to_item_id_dict(
 
     return available_asset_names_to_item_id
 
+def create_seeq_formula(
+    name:'str', formula:'str', parameters:'dict', 
+    formula_type:'str'='Signal', quiet:'bool'=True,
+    workbook=None, worksheet=None)->'pd.DataFrame':
+    body={
+        'Name':name, 
+        'Formula':formula,
+        'Formula Parameters':parameters, 
+        'Type':formula_type,
+    }
+
+    bodies = [body]
+
+    metatag = pd.DataFrame(bodies)
+
+    results = spy.push(metadata=metatag, workbook=workbook, worksheet=worksheet, quiet=quiet)
+    return results
+
+def format_time_stamp_for_seeq_capsule(timestamp:'str')->'str':
+    ts = timestamp
+    utc_offset = ts.utcoffset()
+    seconds = utc_offset.seconds
+    hours = int(np.floor(seconds/3600))
+    if hours >= 0:
+        hours = '+'+str(hours)
+    else:
+        hours = str(hours)
+
+    if len(hours.replace('-','').replace('+','')) == 1:
+        hours = hours[0] + '0' + hours[1]
+    minutes = str(int(abs(np.floor(np.mod(seconds, -3600) / 60))))
+
+    if len(minutes) == 1:
+        minutes = '0' + minutes
+        
+    return ts.strftime("%Y-%m-%dT%H:%M:%S{}:{}").format(
+        hours, minutes
+    )
+
 def create_and_push_formula(
     curve_set:'str', curve_name:'str', storage_id:'str', 
     x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
@@ -226,19 +265,9 @@ def create_and_push_formula(
 )"""
 
         formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
+        
+        results = create_seeq_formula(formula_name, formula_string, signal_notator_to_id_dict)
 
-        body={
-            'Name':formula_name, 
-            'Formula':formula_string,
-            'Formula Parameters':signal_notator_to_id_dict, 
-            'Type':'Signal',
-        }
-
-        bodies = [body]
-
-        metatag = pd.DataFrame(bodies)
-
-        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
         return results
     
     else:
@@ -425,7 +454,7 @@ def modify_workstep(
     existing_x_range = (view_region['x']['min'], view_region['x']['max'])
 
     # case where no scatter plot has yet been established
-    if existing_x_range[0] is None or existing_x_range[1] is None:
+    if (existing_x_range[0] is None) or (existing_x_range[1] is None):
         existing_x_range = (np.inf, -np.inf)
 
     if view_region['ys'] == {}:
@@ -437,17 +466,33 @@ def modify_workstep(
     x_min, x_max = x_range
     y_min, y_max = y_range
 
+#     stores['sqScatterPlotStore'].update(
+#         {
+#             'viewRegion':{
+#                 'x': {
+#                     'min': min(x_min, existing_x_range[0]), 
+#                     'max': max(x_max, existing_x_range[1])
+#                 }, 
+#                 'ys': {
+#                     y_axis_id: {
+#                         'min': min(y_min, existing_y_range[0]), 
+#                         'max': max(y_max, existing_y_range[1])
+#                     }
+#                 }
+#             }
+#         }
+#     )
     stores['sqScatterPlotStore'].update(
         {
             'viewRegion':{
                 'x': {
-                    'min': min(x_min, existing_x_range[0]), 
-                    'max': max(x_max, existing_x_range[1])
+                    'min': None, 
+                    'max': None
                 }, 
                 'ys': {
                     y_axis_id: {
-                        'min': min(y_min, existing_y_range[0]), 
-                        'max': max(y_max, existing_y_range[1])
+                        'min': None, 
+                        'max': None
                     }
                 }
             }
