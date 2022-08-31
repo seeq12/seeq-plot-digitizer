@@ -12,8 +12,11 @@ from ._utils import (
 
 __all__ = (
     'get_workbook', 'get_worksheet', 'get_asset', 'update_pltdgtz_property',
-    'get_pltdgtz_property', 'get_selected_curve_points', 'get_available_asset_names_to_item_id_dict',
-    'create_and_push_formula', 'modify_workstep'
+    'get_pltdgtz_property', 'get_available_asset_names_to_item_id_dict',
+    'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
+    'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset',
+    'update_plot_digitizer_storage', 'delete_empty_plot_digitizer_storage',
+    'create_scalar'
 )
 
 
@@ -52,35 +55,119 @@ def get_asset(
         return ancestors[-1]
     except IndexError:
         return None
+    
+def create_scalar(name, formula, scalars_api)->'seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1':
+    body = sdk.ScalarInputV1(name=name, formula=formula, unit_of_measure='string')
+    returned = scalars_api.create_calculated_scalar(body=body)
+    return returned
+
+def get_scalar(id:'str', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    return scalars_api.get_scalar(id=id)
+
+def get_plot_digitizer_storage_dict(
+    scalar:'{str, seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1}',
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi')->'dict':
+    if type(scalar) is str:
+        scalar = get_scalar(id=scalar, scalars_api=scalars_api)
+        
+    starter = scalar.formula[0]
+    return json.loads(scalar.formula.replace(starter, ""))
+
+def update_scalar_formula(
+    scalar:'{str, seeq.sdk.models.calculated_item_output_v1.CalculatedItemOutputV1}',
+    formula:'str',
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    
+    if type(scalar) is str:
+        scalar = get_scalar(scalar, scalars_api)
+    
+    body = {
+      "datasourceClass": scalar.datasource_class,
+      "scalars": [
+        {
+          "datasourceClass": scalar.datasource_class,
+          "dataId": scalar.data_id,
+          "datasourceId": scalar.datasource_id,
+          "name": scalar.name,
+          "formula": formula
+        }
+      ],
+      "datasourceId": scalar.datasource_id
+    }
+    
+    returned = scalars_api.put_scalars(
+        body=body
+    )
+    return returned
+
+def get_plot_digitizer_storage_id(asset_id:'str', 
+                                  scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi',
+                                  REGION_OF_INTEREST:'bool', delete_empty=True,
+                                  quiet=True)->'str':
+    if not REGION_OF_INTEREST:
+        # original case of simple plot digitization
+        name = '{}.PlotDigitizerScalarStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+    else:
+        # region of interest case
+        name = '{}.PlotDigitizerROIStorage'.format(asset_id)
+        search_results = spy.search({'Name':name, 'Type':'Scalar'}, quiet=quiet)
+        
+    
+    if len(search_results) == 1:
+        _id = search_results.ID.iloc[0]
+    elif len(search_results) == 0:
+        # create the condition
+        create_return = create_scalar(
+            name=name,
+            formula="'{}'".format(json.dumps({})),
+            scalars_api=scalars_api
+        )
+        _id = create_return.id
+    else:
+        if delete_empty:
+            
+            delete_empty_plot_digitizer_storage(search_results, scalars_api)
+            return get_plot_digitizer_storage_id(
+                asset_id, scalars_api, REGION_OF_INTEREST, delete_empty=False, quiet=quiet
+            )
+        
+        raise Exception("Multiple Plot digitizer storage scalars with id {}".format(asset_id))
+    
+    return _id
+
+def update_plot_digitizer_storage(updater_dict:'dict', storage_id:'str', 
+                                  scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    # get the existing one, if None, create
+    scalar = get_scalar(storage_id, scalars_api)
+    existing = get_plot_digitizer_storage_dict(storage_id, scalars_api)
+    
+    for key, v in updater_dict.items():
+        if key in existing:
+            existing[key].update(v)
+        else:
+            existing.update({key:v})
+    out = update_scalar_formula(
+        scalar, 
+        "'{}'".format(
+            json.dumps(existing)
+        ), 
+        scalars_api
+    )
+        
+    return out
 
 
 def update_pltdgtz_property(
-    asset:'seeq.sdk.models.item_preview_v1.ItemPreviewV1', 
+    storage_id:'str', 
     selected_points_df:'pandas.DataFrame', 
     curve_set:'str', curve_name:'str', 
-    items_api:'seeq.sdk.apis.items_api.ItemsApi'):
-
-    existing_pltdgtz = get_pltdgtz_property(asset, items_api)
+    scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
 
     stringified_selected_points = stringify_selected_points(selected_points_df)
-
-    if existing_pltdgtz is None:
-        value = {curve_set:{curve_name:stringified_selected_points}}
-        value = curvesets_to_json(value)
-    else:
-        current_value = json_to_curvesets(existing_pltdgtz.value)
-        try:
-            curve_set_dict = current_value[curve_set]
-            curve_set_dict.update({curve_name: stringified_selected_points})
-        except KeyError:
-            current_value.update({curve_set:{curve_name: stringified_selected_points}})
-
-        value = curvesets_to_json(current_value)
-
-    body = sdk.PropertyInputV1(
-        unit_of_measure='string', value=value
-    )
-    items_api.set_property(id=asset.id, property_name=PROPERTY_NAME, body=body)
+    updater_dict = {curve_set:{curve_name:stringified_selected_points}}
+    update_plot_digitizer_storage(updater_dict, storage_id, scalars_api)
+    
     return 
 
 def get_pltdgtz_property(
@@ -98,26 +185,10 @@ def get_pltdgtz_property(
 
     return None
 
-def get_selected_curve_points(asset:'{str, seeq.sdk.models.item_preview_v1.ItemPreviewV1}', 
-                              curve_set:'str', curve_name:'str', 
-                              items_api:'seeq.sdk.apis.items_api.ItemsApi', delimiter='||'):
-
-    prop = get_pltdgtz_property(asset, items_api)
-    if prop is None:
-        raise NameError(
-            'No property corresponding to curve_set={}, curve_name={} in asset with id {}'.format(
-                curve_set, curve_name, asset
-            )
-        )
-    curve_sets_dict = json_to_curvesets(prop.value)
-
-    return destringify_points(curve_sets_dict[curve_set][curve_name])
-
 
 def get_available_asset_names_to_item_id_dict(
     worksheet:'seeq.spy.workbooks._worksheet.AnalysisWorksheet',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi') -> 'dict':
-    """after calling get_available_asset_names_to_item_id_dict(worksheet), use the returned dict value in get_asset()"""
 
     available_asset_names_to_item_id = dict()
 
@@ -125,7 +196,7 @@ def get_available_asset_names_to_item_id_dict(
         asset = get_asset(item_id, trees_api)
         if asset is None:
             continue
-        available_asset_names_to_item_id.update({asset.name:item_id})
+        available_asset_names_to_item_id.update({asset.name:asset.id})
         
         if len(available_asset_names_to_item_id) == 0:
             raise NoParentAsset('No items with parent assets in worksheet.')
@@ -133,41 +204,106 @@ def get_available_asset_names_to_item_id_dict(
     return available_asset_names_to_item_id
 
 def create_and_push_formula(
-    curve_set:'str', curve_name:'str', asset_id:'str', 
-    auth_token:'str', x_axis_id:'str', quiet:'bool'=True):
+    curve_set:'str', curve_name:'str', storage_id:'str', 
+    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
     
-    signal_notator = '$a'
-    curveSet = curve_set
-    curveName = curve_name
-    authToken = auth_token
-    assetId = asset_id
+    if not REGION_OF_INTEREST:
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
 
-    signal_notator_to_id_dict = {signal_notator:x_axis_id}
+        signal_notator = '$x'
+        curveSet = curve_set
+        curveName = curve_name
 
-    # formula name
-    formula_name = '{}, {}'.format(curveSet, curveName)
-    
-    formula_formatter = """PlotDigitizer_Show({}, 
+        signal_notator_to_id_dict = {signal_notator:x_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {}'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_Show2({}, {}, 
     "{}".toSignal(), 
-    "{}".toSignal(), 
-    "{}".toSignal(), 
-    "{}".toSignal())"""
-    
-    formula_string = formula_formatter.format(signal_notator, assetId, curveSet, curveName, authToken)
-    
-    body={
-        'Name':formula_name, 
-        'Formula':formula_string,
-        'Formula Parameters':signal_notator_to_id_dict, 
-        'Type':'Signal',
-    }
+    "{}".toSignal()
+)"""
 
-    bodies = [body]
+        formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
 
-    metatag = pd.DataFrame(bodies)
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type':'Signal',
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
     
-    results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
-    return results
+    else:
+        if y_axis_id is None:
+            raise TypeError('No yaxis id supplied')
+        # generate the first formula to pass the plot digitizer storage to external calc
+        template = """$pdz.toSignal()"""
+
+        xsignal_notator = '$x'
+        ysignal_notator = '$y'
+        curveSet = curve_set
+        curveName = curve_name
+
+        signal_notator_to_id_dict = {xsignal_notator:x_axis_id, ysignal_notator:y_axis_id, '$pdz':storage_id}
+
+        # formula name
+        formula_name = '{}: {} (ROI)'.format(curveSet, curveName)
+
+        formula_formatter = """PlotDigitizer_ROI({}, {}, {},
+    "{}".toSignal(), 
+    "{}".toSignal()
+).toCondition()"""
+
+        formula_string = formula_formatter.format(xsignal_notator, ysignal_notator, template, curveSet, curveName)
+
+        body={
+            'Name':formula_name, 
+            'Formula':formula_string,
+            'Formula Parameters':signal_notator_to_id_dict, 
+            'Type': 'Condition'
+        }
+
+        bodies = [body]
+
+        metatag = pd.DataFrame(bodies)
+
+        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
+        return results
+    
+def add_item_to_asset(asset_id:'str', item_name:'str', item_id:'str', 
+                      trees_api:'seeq.sdk.apis.trees_api.TreesApi',
+                      overwrite:'bool'=True
+                     ):
+    
+    if overwrite:
+        
+        # check for same names that already exist
+        tree = trees_api.get_tree(id=asset_id)
+        existing_ids_of_same_name = []
+        for child in tree.children:
+            if child.name == item_name:
+                existing_ids_of_same_name.append(child.id)
+                
+        # remove existing
+        for _id in existing_ids_of_same_name:
+            trees_api.remove_node_from_tree(id=_id)
+    
+    trees_api.move_nodes_to_parent(
+        parent_id=asset_id, 
+        body=sdk.ItemIdListInputV1(
+            items=[item_id]
+        )
+    )
+    
+    return
 
 def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.AnalysisWorkstep')->'dict':
     """Return a copy of the workstep data dict"""
@@ -177,9 +313,69 @@ def duplicate_current_workstep_data(workstep:'seeq.spy.workbooks._workstep.Analy
     new_stores = json.loads(stores_str)
     return {'version':version, 'state':{'stores':new_stores}}
 
-def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
-    workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+def find_lane_for_yaxis_id(y_axis_id:'str', items:'[dict]'):
+    for item in items:
+        if item['id'] == y_axis_id:
+            return item['lane']
+        
+    raise ValueError('Cannot find y_axis_id {} in workstep stores.'.format(y_axis_id))
+
+def add_series_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str', lane:'int'=None):
+    if lane is None:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name})
+    else:
+        workstep_stores['sqTrendSeriesStore']['items'].append({'id':id, 'name':name, 'lane':lane})
     return
+
+def add_condition_to_workstep_stores(workstep_stores:'dict', id:'str', name:'str'):
+    workstep_stores['sqTrendCapsuleSetStore']['items'].append({'id':id, 'name':name})
+    return
+
+def delete_empty_plot_digitizer_storage(
+    storage_search_results:'pd.DataFrame', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'
+)->'str':
+    for _id in storage_search_results.ID.values:
+        tdict = get_plot_digitizer_storage_dict(_id, scalars_api)
+        if tdict == {}:
+            delete_scalar(_id, scalars_api)
+    return
+
+def merge_plot_digitizer_storage_dicts(existing, new):
+    """Any matching keys at the curve set level will be updated with '_vX' at the end."""
+    clashing_keys = set(existing.keys()).intersection(set(new.keys()))
+    for key in clashing_keys:
+        existing.update({'{}_v1'.format(key):existing.pop(key)})
+        existing.update({'{}_v2'.format(key):new.pop(key)})
+
+    existing.update(new)
+    return existing
+
+def delete_scalar(ID:'str', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'):
+    scalars_api.archive_scalar(id=ID)
+    return
+
+def aggregate_existing_plot_digitizer_storages(
+    storage_search_results:'pd.DataFrame', scalars_api:'seeq.sdk.apis.scalars_api.ScalarsApi'
+)->'str':
+    """For each ID in storage search results, aggregate their dictionaries.
+    Any matching keys AT THE CURVE SET level will be updated with '_vX' at the end.
+    Delete all but final ID, update plot digitizer storage on the final ID
+    """
+    
+    # merge existing dicts:
+    out = {}
+    for _id in storage_search_results.ID.values:
+        tdict = get_plot_digitizer_storage_dict(_id, scalars_api)
+        out = merge_plot_digitizer_storage_dicts(out, tdict)
+        
+    # delete all but last id:
+    for _id in storage_search_results.ID.values[:-1]:
+        delete_scalar(_id, scalars_api)
+    
+    out_id = storage_search_results.ID.values[-1]
+    update_plot_digitizer_storage(out, out_id, scalars_api)
+    
+    return out_id
 
 def modify_workstep(
     workbook:'seeq.spy.workbooks._workbook.Analysis',
@@ -187,46 +383,26 @@ def modify_workstep(
     formula_push_results:'pandas.DataFrame',
     trees_api:'seeq.sdk.apis.trees_api.TreesApi',
     workbooks_api:'seeq.sdk.apis.workbooks_api.WorkbooksApi',
-    x_range:'tuple', y_range:'tuple'):
+    x_range:'tuple', y_range:'tuple', x_axis_id:'str', y_axis_id:'str',
+    REGION_OF_INTEREST:'bool'):
+    
     old_display = worksheet.display_items[['Name', 'ID', 'Type']].copy()
     
-    # TODO: FIX XAXIS ID
-    try:
-        x_axis_id = old_display.iloc[0].ID
-        y_axis_id = old_display.iloc[1].ID
-    except IndexError:
-        raise IndexError('Must have at least two signals on the screen')
-    asset_id = get_asset(x_axis_id, trees_api=trees_api).id
     
     # get formula parameters
     formula_name = formula_push_results.iloc[0].Name
     formula_id = formula_push_results.iloc[0].ID
-    
-    # specify items to add to display
-#     add_display = pd.DataFrame(
-#         dict(
-#             Name=formula_name, 
-#             ID=formula_id,
-#             Type='Signal'
-#         ), 
-#         index=[0]
-#     )
-    
-    # update display items
-#     new_display_items = pd.concat(
-#         (old_display, add_display)
-#     ).reset_index(drop=True)
-    
-#     worksheet.display_items = new_display_items
+
     
     # get the current workstep and stores for updating
     current_workstep = worksheet.current_workstep()
-#     workstep_data = current_workstep.data.copy()
-#     stores = workstep_data['state']['stores']
     workstep_data = duplicate_current_workstep_data(current_workstep)
-#     stores = current_workstep.get_workstep_stores()
     stores = workstep_data['state']['stores']
-    add_series_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    if REGION_OF_INTEREST:
+        add_condition_to_workstep_stores(stores, id=formula_id, name=formula_name)
+    else:
+        lane = find_lane_for_yaxis_id(y_axis_id, stores['sqTrendSeriesStore']['items'])
+        add_series_to_workstep_stores(stores, id=formula_id, name=formula_name, lane=lane)
     
     # update scatter plot
     xSignal_dict = stores['sqScatterPlotStore']['xSignal']
@@ -270,7 +446,7 @@ def modify_workstep(
                 }, 
                 'ys': {
                     y_axis_id: {
-                        'min': min(y_min, existing_y_range[0]),
+                        'min': min(y_min, existing_y_range[0]), 
                         'max': max(y_max, existing_y_range[1])
                     }
                 }
@@ -278,13 +454,17 @@ def modify_workstep(
         }
     )
     
-    fx_lines = stores['sqScatterPlotStore']['fxLines']
-    fx_lines.append({'id': formula_id, 'color':'#000000'})
     
-    # update f(x)
-    stores['sqScatterPlotStore'].update({
-        'fxLines': fx_lines
-    })
+    if not REGION_OF_INTEREST:
+        fx_lines = stores['sqScatterPlotStore']['fxLines']
+        fx_lines.append({'id': formula_id, 'color':'#000000'})
+
+        # update f(x)
+        stores['sqScatterPlotStore'].update({
+            'fxLines': fx_lines
+        })
+    else:
+        stores['sqScatterPlotStore']['colorConditionIds'].append(formula_id)
 
     # push results
 #     print(workstep_data)
