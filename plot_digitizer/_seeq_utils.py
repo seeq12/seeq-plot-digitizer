@@ -406,6 +406,27 @@ def aggregate_existing_plot_digitizer_storages(
     
     return out_id
 
+def get_maxmin_XY_signals(
+    x_id:'str', y_id:'str', 
+    display_range:'dict<"Start":Timestamp, "End":Timestamp,>',
+    quiet=True)->'pd.DataFrame':
+    df = spy.pull(
+        pd.DataFrame(
+            {
+                'ID':[x_id, y_id], 
+                'Type':['Signal', 'Signal']
+            }
+        ), 
+        start=display_range['Start'],
+        end=display_range['End'],
+        quiet=quiet
+    ).describe()
+    renamer = {
+        name:_id for name, _id in zip(list(df.columns), [x_id, y_id])
+    }
+    
+    return df.loc[['min', 'max']].rename(columns=renamer)
+
 def modify_workstep(
     workbook:'seeq.spy.workbooks._workbook.Analysis',
     worksheet:'seeq.spy.workbooks._worksheet.AnalysisWorksheet',
@@ -455,10 +476,15 @@ def modify_workstep(
 
     # case where no scatter plot has yet been established
     if (existing_x_range[0] is None) or (existing_x_range[1] is None):
-        existing_x_range = (np.inf, -np.inf)
+        minmaxdf = get_maxmin_XY_signals(x_axis_id, y_axis_id, current_workstep.display_range)
+        existing_x_range = tuple(minmaxdf[x_axis_id].values)
 
     if view_region['ys'] == {}:
-        existing_y_range = (np.inf, -np.inf)
+        try:
+            existing_y_range = tuple(minmaxdf[y_axis_id].values)
+        except NameError:
+            minmaxdf = get_maxmin_XY_signals(x_axis_id, y_axis_id, current_workstep.display_range)
+            existing_y_range = tuple(minmaxdf[y_axis_id].values)
     else:
         y_view_key = list(view_region['ys'].keys())[0]
         existing_y_range = (view_region['ys'][y_view_key]['min'], view_region['ys'][y_view_key]['max']) 
@@ -466,39 +492,22 @@ def modify_workstep(
     x_min, x_max = x_range
     y_min, y_max = y_range
 
-#     stores['sqScatterPlotStore'].update(
-#         {
-#             'viewRegion':{
-#                 'x': {
-#                     'min': min(x_min, existing_x_range[0]), 
-#                     'max': max(x_max, existing_x_range[1])
-#                 }, 
-#                 'ys': {
-#                     y_axis_id: {
-#                         'min': min(y_min, existing_y_range[0]), 
-#                         'max': max(y_max, existing_y_range[1])
-#                     }
-#                 }
-#             }
-#         }
-#     )
     stores['sqScatterPlotStore'].update(
         {
             'viewRegion':{
                 'x': {
-                    'min': None, 
-                    'max': None
+                    'min': min(x_min, existing_x_range[0]), 
+                    'max': max(x_max, existing_x_range[1])
                 }, 
                 'ys': {
                     y_axis_id: {
-                        'min': None, 
-                        'max': None
+                        'min': min(y_min, existing_y_range[0]), 
+                        'max': max(y_max, existing_y_range[1])
                     }
                 }
             }
         }
     )
-    
     
     if not REGION_OF_INTEREST:
         fx_lines = stores['sqScatterPlotStore']['fxLines']
