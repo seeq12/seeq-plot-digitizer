@@ -16,7 +16,8 @@ __all__ = (
     'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
     'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset',
     'update_plot_digitizer_storage', 'delete_empty_plot_digitizer_storage',
-    'create_scalar', 'format_time_stamp_for_seeq_capsule', 'create_seeq_formula'
+    'create_scalar', 'format_time_stamp_for_seeq_capsule', 'create_seeq_formula',
+    'get_curve_set_asset_id'
 )
 
 
@@ -26,6 +27,50 @@ class NoParentAsset(Exception):
     def __init__(self, message):
         super().__init__(message)
 
+        
+def create_asset(name, assets_api):
+    response = assets_api.create_asset(
+        body={
+            "name":name
+        }
+    )
+    return response
+
+def get_existing_curve_set_asset_id(parent_asset_id:'str', curve_set_name:'str', trees_api):
+    """return None if curve set does not exist, otherwise return the id of that curve set asset"""
+    parent_tree = trees_api.get_tree(id=parent_asset_id)
+    exisiting_curve_set_asset_id = None
+    for child in parent_tree.children:
+        if curve_set_name == child.name:
+            if child.type == 'Asset':
+                exisiting_curve_set_asset_id = child.id
+                break
+            else:
+                raise TypeError(
+                    'A child of parent asset id {} exists with name {}, but is not an Asset. Is instead type {}'.format(parent_asset_id, curve_set_name, child.type)
+                )
+                break
+        else:
+            continue
+            
+    return exisiting_curve_set_asset_id
+
+
+
+def get_curve_set_asset_id(parent_asset_id, curve_set_name, trees_api, assets_api):
+    # check if name already exists under parent asset
+    existing_curve_set_asset_id = get_existing_curve_set_asset_id(parent_asset_id, curve_set_name, trees_api)
+
+    if existing_curve_set_asset_id is None:
+
+        # create the asset
+        asset_creation_response = create_asset(curve_set_name, assets_api)
+        # move the asset under parent id
+        add_item_to_asset(parent_asset_id, curve_set_name, asset_creation_response.id, trees_api, overwrite=False)
+
+        existing_curve_set_asset_id = asset_creation_response.id
+        
+    return existing_curve_set_asset_id
 
 def get_workbook(wkb_id:'str', quiet=True):
     workbook = spy.workbooks.pull(
@@ -47,7 +92,7 @@ def get_worksheet(workbook:'seeq.spy.workbooks._workbook.Analysis', wks_id:'str'
 def get_asset(
     id:'str', trees_api:'seeq.sdk.apis.trees_api.TreesApi'
 ) -> 'seeq.sdk.models.item_preview_v1.ItemPreviewV1':
-    """Get the asset of an item (e.g. signal)"""
+    """Get the parent asset of an item (e.g. signal)"""
     try:
         tree = trees_api.get_tree(id=id)
         item = tree.item
