@@ -6,6 +6,7 @@ import setuptools
 # Use the following command from a terminal window to generate the whl with source code
 # python setup.py bdist_wheel
 
+
 namespace = 'seeq.*'
 
 with open("README.md", "r") as fh:
