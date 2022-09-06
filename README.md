@@ -1,8 +1,17 @@
 # seeq-plot-digitizer
 Digitization tools for Seeq
 
-1. [Installation](#user-installation-seeq-data-lab)
+1. [User Guide](#user-guide)
+2. [Installation](#user-installation-seeq-data-lab)
 
+
+## User Guide
+
+Seeq Plot Digitizer is an addon tool designed to **streamline digitization of existing or legacy data**.
+<img src="imgs/digitize.png" style="width:100%;">
+
+The Plot Digitizer tool can also be used to **define a region of interest (ROI)**, resulting in creation of a new condition in Workbench.
+<img src="imgs/roi.png" style="width:100%;">
 
 ## User Installation (Seeq Data Lab)
 
