@@ -49,7 +49,7 @@ def install_app(sdl_url_, *, sort_key='a', permissions_groups: list = None, perm
         permissions_users = DEFAULT_USERS
 
     add_on_details = {
-        "Name": 'Plot Digitizer v2',
+        "Name": 'Plot Digitizer',
         "Description": "Digitize Plots in Seeq",
         "Icon": "fa fa-file-image-o",
         "Target URL": f'{sdl_url_}/apps/{DEPLOYMENT_FOLDER}/{PLOT_DIGITIZER_NOTEBOOK}',
