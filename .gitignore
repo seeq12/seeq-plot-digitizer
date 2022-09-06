@@ -4,7 +4,6 @@ imgs/
 *plotDigitizer*
 *.pdf
 *.png
-*Copy*
 *titled*
 *__pycache__*
 base_un_run.ipynb
