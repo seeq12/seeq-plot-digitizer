@@ -227,8 +227,8 @@ class Show2(KeywiseExternalCalculationScript):
             points = destringify_points(storage_dict[curve_set][curve_name])
             arg_order = np.argsort(points[:,0])
             points = points[arg_order, :]
-            # self.model = CubicSpline(points[:,0], points[:,1])
-            self.model = interp1d(points[:,0], points[:,1])
+            self.model = CubicSpline(points[:,0], points[:,1])
+            # self.model = interp1d(points[:,0], points[:,1])
 
         try:
             return self.model(samples_for_key[0])
