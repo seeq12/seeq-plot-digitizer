@@ -10,18 +10,19 @@ from seeq.spy._errors import *
 # noinspection PyProtectedMember
 from seeq.spy import _url
 from ._copy import copy
-from ._permissions import get_user, get_user_group
+from ._permissions import (get_user, get_user_group, 
+    get_plotdigitizer_package, set_acl_read_permissions_true)
 
 NB_EXTENSIONS = ['widgetsnbextension']
 DEPLOYMENT_FOLDER = 'deployment'
-CORRELATION_NOTEBOOK = "plot_digitizer_master.ipynb"
+PLOT_DIGITIZER_NOTEBOOK = "plot_digitizer_master.ipynb"
 DEFAULT_GROUP = ['Everyone']
 DEFAULT_USERS = []
 
 
-def install_app(sdl_url_, *, sort_key='a', permissions_group: list = None, permissions_users: list = None):
+def install_app(sdl_url_, *, sort_key='a', permissions_groups: list = None, permissions_users: list = None):
     """
-    Installs Correlation as an Add-on Tool in Seeq Workbench
+    Installs Plot Digitizer as an Add-on Tool in Seeq Workbench
     Parameters
     ----------
     sdl_url_: str
@@ -30,7 +31,7 @@ def install_app(sdl_url_, *, sort_key='a', permissions_group: list = None, permi
     sort_key: str, default 'a'
         A string, typically one character letter. The sort_key determines the
         order in which the Add-on Tools are displayed in the tool panel.
-    permissions_group: list
+    permissions_groups: list
         Names of the Seeq groups that will have access to each tool. If None,
         the "Everyone" group will be used by default.
     permissions_users: list
@@ -39,22 +40,24 @@ def install_app(sdl_url_, *, sort_key='a', permissions_group: list = None, permi
     Returns
     --------
     -: None
-        Correlation Analysis will appear as Add-on Tool(s) in Seeq
+        Plot Digitizer Analysis will appear as Add-on Tool(s) in Seeq
         Workbench
     """
+    if permissions_groups is None:
+        permissions_groups = DEFAULT_GROUP
+    if permissions_users is None:
+        permissions_users = DEFAULT_USERS
 
-    permissions_group = permissions_group if permissions_group else DEFAULT_GROUP
-    permissions_users = permissions_users if permissions_users else DEFAULT_USERS
     add_on_details = {
         "Name": 'Plot Digitizer v2',
         "Description": "Digitize Plots in Seeq",
         "Icon": "fa fa-file-image-o",
-        "Target URL": f'{sdl_url_}/apps/{DEPLOYMENT_FOLDER}/{CORRELATION_NOTEBOOK}',
+        "Target URL": f'{sdl_url_}/apps/{DEPLOYMENT_FOLDER}/{PLOT_DIGITIZER_NOTEBOOK}',
         "Link Type": "window",
         "Window Details": "toolbar=0,location=0,left=800,top=400,height=1000,width=1400",
         "Sort Key": sort_key,
         "Reuse Window": True,
-        "Groups": permissions_group,
+        "Groups": permissions_groups,
         "Users": permissions_users
         }
 
@@ -75,6 +78,58 @@ def install_nbextensions():
                        check=True)
         subprocess.run(f'jupyter nbextension enable --user --py {extension}', cwd=os.path.expanduser('~'), shell=True,
                        check=True)
+
+
+def add_extcalc_acl(api_client, *, permissions_groups: list = None, permissions_users: list = None):
+    """
+    Add access control to the external calculation functions for plot digitizer
+    Parameters
+    ----------
+    api_client: seeq.sdk.api_client.ApiClient
+        The seeq.sdk API client that handles the client-server
+        communication
+    permissions_groups: list
+        Names of the Seeq groups that will have access to each tool
+    permissions_users: list
+        Names of Seeq users that will have access to each tool
+    Returns
+    --------
+    -: None
+        The Plot Digitizer functions will be available in Seeq Workbench
+    """
+    if permissions_groups is None:
+        permissions_groups = DEFAULT_GROUP
+    if permissions_users is None:
+        permissions_users = DEFAULT_USERS
+
+    print("\n\nUpdating Plot Digitizer external calculation functions...")
+    user_groups_api = sdk.UserGroupsApi(api_client)
+    users_api = sdk.UsersApi(api_client)
+    items_api = sdk.ItemsApi(api_client)
+    formulas_api = sdk.FormulasApi(api_client)
+    plot_digitizer_package = get_plotdigitizer_package(formulas_api)
+
+    # assign group permissions
+    for group_name in permissions_groups:
+        group = get_user_group(group_name, user_groups_api)
+        if group:
+            set_acl_read_permissions_true(
+                package_id=plot_digitizer_package.id, 
+                user_id=group.items[0].id, 
+                items_api=items_api
+            )
+
+    # assign user permissions
+    for user_name in permissions_users:
+        current_user = get_user(user_name, users_api)
+        if current_user:
+            set_acl_read_permissions_true(
+                package_id=plot_digitizer_package.id, 
+                user_id=current_user.users[0].id, 
+                items_api=items_api
+            )
+
+    print("DONE")
 
 
 def logging_attempts(_user):
@@ -116,7 +171,7 @@ def logging_attempts(_user):
 
 
 def cli_interface():
-    """ Command line utility to install the Correlation Add-on Tool """
+    """ Command line utility to install the Plot Digitizer Add-on Tool """
     parser = argparse.ArgumentParser(description='Install Plot Digitizer as a Seeq Add-on Tool')
     parser.add_argument('--nbextensions_only', action='store_true',
                         help='Only installs the nbextensions without installing or updating the Add-on Tools'
@@ -126,10 +181,10 @@ def cli_interface():
     parser.add_argument('--seeq_url', type=str, nargs='?',
                         help="Seeq hostname URL with the format https://my.seeq.com/ or https://my.seeq.com:34216")
     parser.add_argument('--users', type=str, nargs='*', default=[],
-                        help="List of the Seeq users to will have access to the Correlation Add-on Tool,"
+                        help="List of the Seeq users to will have access to the Plot Digitizer Add-on Tool,"
                              " default: %(default)s")
     parser.add_argument('--groups', type=str, nargs='*', default=['Everyone'],
-                        help="List of the Seeq groups to will have access to the Correlation Add-on Tool, "
+                        help="List of the Seeq groups to will have access to the Plot Digitizer Add-on Tool, "
                              "default: %(default)s")
     return parser.parse_args()
 
@@ -160,10 +215,10 @@ if __name__ == '__main__':
         sdl_url = input("Seeq Data Lab project URL: ")
         project_id = spy.utils.get_data_lab_project_id_from_url(sdl_url)
         if not project_id:
-            raise RuntimeError('Could not install "seeq-correlation" because the SDL project ID could not be found')
+            raise RuntimeError('Could not install "seeq-plot-digitizer" because the SDL project ID could not be found')
     sdl_url_sanitized = _url.SeeqURL.parse(sdl_url).url
 
-    print(f"\nThe Correlation Tool will be installed on the SDL notebook: {sdl_url_sanitized}\n"
+    print(f"\nThe Plot Digitizer Tool will be installed on the SDL notebook: {sdl_url_sanitized}\n"
           f"If this is not your intent, you can quit the installation now ")
     print('\n[enter] to continue or type "quit" to exit installation')
     choice = None
@@ -172,9 +227,8 @@ if __name__ == '__main__':
         if choice == '':
             print("\n\nInstalling and enabling nbextensions")
             install_nbextensions()
-            if not args.skip_formula_package:
-                create_udfs(spy.client, permissions_groups=args.groups, permissions_users=args.users)
-            install_app(sdl_url_sanitized, permissions_group=args.groups, permissions_users=args.users)
+            add_extcalc_acl(spy.client, permissions_groups=args.groups, permissions_users=args.users)
+            install_app(sdl_url_sanitized, permissions_groups=args.groups, permissions_users=args.users)
         elif choice == 'quit':
             print("\nExited installation")
         else:
