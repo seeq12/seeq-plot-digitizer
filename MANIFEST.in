@@ -1,0 +1,5 @@
+include LICENSE
+global-exclude *.pyc
+global-exclude *__pycache__
+global-exclude .ipynb_checkpoints
+include seeq/addons/plot_digitizer/deployment_notebook/*.ipynb

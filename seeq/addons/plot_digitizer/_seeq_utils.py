@@ -16,7 +16,8 @@ __all__ = (
     'create_and_push_formula', 'modify_workstep', 'get_plot_digitizer_storage_id',
     'get_plot_digitizer_storage_dict', 'NoParentAsset', 'add_item_to_asset',
     'update_plot_digitizer_storage', 'delete_empty_plot_digitizer_storage',
-    'create_scalar'
+    'create_scalar', 'format_time_stamp_for_seeq_capsule', 'create_seeq_formula',
+    'get_curve_set_asset_id'
 )
 
 
@@ -26,6 +27,50 @@ class NoParentAsset(Exception):
     def __init__(self, message):
         super().__init__(message)
 
+        
+def create_asset(name, assets_api):
+    response = assets_api.create_asset(
+        body={
+            "name":name
+        }
+    )
+    return response
+
+def get_existing_curve_set_asset_id(parent_asset_id:'str', curve_set_name:'str', trees_api):
+    """return None if curve set does not exist, otherwise return the id of that curve set asset"""
+    parent_tree = trees_api.get_tree(id=parent_asset_id)
+    exisiting_curve_set_asset_id = None
+    for child in parent_tree.children:
+        if curve_set_name == child.name:
+            if child.type == 'Asset':
+                exisiting_curve_set_asset_id = child.id
+                break
+            else:
+                raise TypeError(
+                    'A child of parent asset id {} exists with name {}, but is not an Asset. Is instead type {}'.format(parent_asset_id, curve_set_name, child.type)
+                )
+                break
+        else:
+            continue
+            
+    return exisiting_curve_set_asset_id
+
+
+
+def get_curve_set_asset_id(parent_asset_id, curve_set_name, trees_api, assets_api):
+    # check if name already exists under parent asset
+    existing_curve_set_asset_id = get_existing_curve_set_asset_id(parent_asset_id, curve_set_name, trees_api)
+
+    if existing_curve_set_asset_id is None:
+
+        # create the asset
+        asset_creation_response = create_asset(curve_set_name, assets_api)
+        # move the asset under parent id
+        add_item_to_asset(parent_asset_id, curve_set_name, asset_creation_response.id, trees_api, overwrite=False)
+
+        existing_curve_set_asset_id = asset_creation_response.id
+        
+    return existing_curve_set_asset_id
 
 def get_workbook(wkb_id:'str', quiet=True):
     workbook = spy.workbooks.pull(
@@ -47,7 +92,7 @@ def get_worksheet(workbook:'seeq.spy.workbooks._workbook.Analysis', wks_id:'str'
 def get_asset(
     id:'str', trees_api:'seeq.sdk.apis.trees_api.TreesApi'
 ) -> 'seeq.sdk.models.item_preview_v1.ItemPreviewV1':
-    """Get the asset of an item (e.g. signal)"""
+    """Get the parent asset of an item (e.g. signal)"""
     try:
         tree = trees_api.get_tree(id=id)
         item = tree.item
@@ -203,6 +248,45 @@ def get_available_asset_names_to_item_id_dict(
 
     return available_asset_names_to_item_id
 
+def create_seeq_formula(
+    name:'str', formula:'str', parameters:'dict', 
+    formula_type:'str'='Signal', quiet:'bool'=True,
+    workbook=None, worksheet=None)->'pd.DataFrame':
+    body={
+        'Name':name, 
+        'Formula':formula,
+        'Formula Parameters':parameters, 
+        'Type':formula_type,
+    }
+
+    bodies = [body]
+
+    metatag = pd.DataFrame(bodies)
+
+    results = spy.push(metadata=metatag, workbook=workbook, worksheet=worksheet, quiet=quiet)
+    return results
+
+def format_time_stamp_for_seeq_capsule(timestamp:'str')->'str':
+    ts = timestamp
+    utc_offset = ts.utcoffset()
+    seconds = utc_offset.seconds
+    hours = int(np.floor(seconds/3600))
+    if hours >= 0:
+        hours = '+'+str(hours)
+    else:
+        hours = str(hours)
+
+    if len(hours.replace('-','').replace('+','')) == 1:
+        hours = hours[0] + '0' + hours[1]
+    minutes = str(int(abs(np.floor(np.mod(seconds, -3600) / 60))))
+
+    if len(minutes) == 1:
+        minutes = '0' + minutes
+        
+    return ts.strftime("%Y-%m-%dT%H:%M:%S{}:{}").format(
+        hours, minutes
+    )
+
 def create_and_push_formula(
     curve_set:'str', curve_name:'str', storage_id:'str', 
     x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
@@ -226,19 +310,9 @@ def create_and_push_formula(
 )"""
 
         formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
+        
+        results = create_seeq_formula(formula_name, formula_string, signal_notator_to_id_dict)
 
-        body={
-            'Name':formula_name, 
-            'Formula':formula_string,
-            'Formula Parameters':signal_notator_to_id_dict, 
-            'Type':'Signal',
-        }
-
-        bodies = [body]
-
-        metatag = pd.DataFrame(bodies)
-
-        results = spy.push(metadata=metatag, workbook=None, worksheet=None, quiet=quiet)
         return results
     
     else:
@@ -377,6 +451,27 @@ def aggregate_existing_plot_digitizer_storages(
     
     return out_id
 
+def get_maxmin_XY_signals(
+    x_id:'str', y_id:'str', 
+    display_range:'dict<"Start":Timestamp, "End":Timestamp,>',
+    quiet=True)->'pd.DataFrame':
+    df = spy.pull(
+        pd.DataFrame(
+            {
+                'ID':[x_id, y_id], 
+                'Type':['Signal', 'Signal']
+            }
+        ), 
+        start=display_range['Start'],
+        end=display_range['End'],
+        quiet=quiet
+    ).describe()
+    renamer = {
+        name:_id for name, _id in zip(list(df.columns), [x_id, y_id])
+    }
+    
+    return df.loc[['min', 'max']].rename(columns=renamer)
+
 def modify_workstep(
     workbook:'seeq.spy.workbooks._workbook.Analysis',
     worksheet:'seeq.spy.workbooks._worksheet.AnalysisWorksheet',
@@ -425,11 +520,16 @@ def modify_workstep(
     existing_x_range = (view_region['x']['min'], view_region['x']['max'])
 
     # case where no scatter plot has yet been established
-    if existing_x_range[0] is None or existing_x_range[1] is None:
-        existing_x_range = (np.inf, -np.inf)
+    if (existing_x_range[0] is None) or (existing_x_range[1] is None):
+        minmaxdf = get_maxmin_XY_signals(x_axis_id, y_axis_id, current_workstep.display_range)
+        existing_x_range = tuple(minmaxdf[x_axis_id].values)
 
     if view_region['ys'] == {}:
-        existing_y_range = (np.inf, -np.inf)
+        try:
+            existing_y_range = tuple(minmaxdf[y_axis_id].values)
+        except NameError:
+            minmaxdf = get_maxmin_XY_signals(x_axis_id, y_axis_id, current_workstep.display_range)
+            existing_y_range = tuple(minmaxdf[y_axis_id].values)
     else:
         y_view_key = list(view_region['ys'].keys())[0]
         existing_y_range = (view_region['ys'][y_view_key]['min'], view_region['ys'][y_view_key]['max']) 
@@ -453,7 +553,6 @@ def modify_workstep(
             }
         }
     )
-    
     
     if not REGION_OF_INTEREST:
         fx_lines = stores['sqScatterPlotStore']['fxLines']
