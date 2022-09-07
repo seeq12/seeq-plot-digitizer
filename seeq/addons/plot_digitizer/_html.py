@@ -7,28 +7,28 @@ instructions = ["""
     """
     <div style="border:8px; border-style:solid; border-color:blue; padding: 1em;">
     <h3>2. Instructions: Calibrate the x-axis.</h3>
-    <p>Select (click) a point on the x-axis of the plot image and manually enter the x-coordinate below.</p>
+    <p>Click "Select" by X1 in the calibration section below. Next, click a point on the x-axis of the plot image. Then, manually enter the x-coordinate in the X1 text entry box and click "Approve". You will be able to edit these selections later.</p>
     </div>
     """,
 
     """
     <div style="border:8px; border-style:solid; border-color:yellow; padding: 1em;">
     <h3>3. Instructions: Calibrate the x-axis. (Point 2)</h3>
-    <p>Select a second point (far from the first) on the x-axis of the plot image and manually enter the x-coordinate below.</p>
+    <p>Select a second point (far from the first) on the x-axis of the plot image and manually enter the x-coordinate in X2. Click "Approve" when done.</p>
     </div>
     """,
 
     """
     <div style="border:8px; border-style:solid; border-color:purple; padding: 1em;">
     <h3>4. Instructions: Calibrate the y-axis.</h3>
-    <p>Select a point on the y-axis of the plot image and manually enter the y-coordinate below.</p>
+    <p>Select a point on the y-axis of the plot image and manually enter the y-coordinate in Y1. Click "Approve" when done.</p>
     </div>
     """,
 
     """
     <div style="border:8px; border-style:solid; border-color:green; padding: 1em;">
     <h3>5. Instructions: Calibrate the y-axis.</h3>
-    <p>Select a second point (far from the first) on the y-axis of the plot image and manually enter the y-coordinate below.</p>
+    <p>Select a second point (far from the first) on the y-axis of the plot image and manually enter the y-coordinate in Y2. Click "Approve" when done.</p>
     </div>
     """,
 
