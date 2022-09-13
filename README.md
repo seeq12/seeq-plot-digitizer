@@ -43,4 +43,4 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
 ## Issue Tracker
 
-Any issues can be [tracked here](#https://github.com/seeq12/seeq-plot-digitizer/issues)
+Any issues can be [tracked here](https://github.com/seeq12/seeq-plot-digitizer/issues)
