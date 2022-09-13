@@ -18,9 +18,11 @@ The Plot Digitizer tool can also be used to **define a region of interest (ROI)*
 The latest build of the project can be found [here](https://pypi.org/project/seeq-plot-digitizer/) as a wheel file. The
 file is published as a courtesy to the user, and it does not imply any obligation for support from the publisher.
 
+**Requires Seeq >= R56**
+
 1. Install the required external calculation scripts. 
 
-    a. Manually download the [Plot Digitizer repository](https://github.com/eparsonnet93/seeq-plot-digitizer). To do so, click the green `Code` button, then Download ZIP
+    a. Manually download the [Plot Digitizer repository](https://github.com/seeq12/seeq-plot-digitizer). To do so, click the green `Code` button, then Download ZIP
 
 	<img src="imgs/zip_download.png" style="width:50%;">
 
@@ -38,3 +40,7 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 3. (In SDL Terminal) Run `pip install seeq-plot-digitizer`
 
 4. (In SDL Terminal) Run `python -m seeq.addons.plot_digitizer [--users <users_list> --groups <groups_list>]`. Then follow the prompt.
+
+## Issue Tracker
+
+Any issues can be [tracked here](#https://github.com/seeq12/seeq-plot-digitizer/issues)
