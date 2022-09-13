@@ -15,7 +15,7 @@ The Plot Digitizer tool can also be used to **define a region of interest (ROI)*
 
 ## User Installation (Seeq Data Lab)
 
-The latest build of the project can be found [here](https://github.com/eparsonnet93/seeq-plot-digitizer/tree/main/dist) as a wheel file. The
+The latest build of the project can be found [here](https://pypi.org/project/seeq-plot-digitizer/) as a wheel file. The
 file is published as a courtesy to the user, and it does not imply any obligation for support from the publisher.
 
 1. Install the required external calculation scripts. 
