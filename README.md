@@ -35,6 +35,6 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
 2. Create a **new** Seeq Data Lab project and open the **Terminal** window
 
-3. (In SDL Terminal) Run `pip install seeq_plot_digitizer`
+3. (In SDL Terminal) Run `pip install seeq-plot-digitizer`
 
 4. (In SDL Terminal) Run `python -m seeq.addons.plot_digitizer [--users <users_list> --groups <groups_list>]`. Then follow the prompt.
