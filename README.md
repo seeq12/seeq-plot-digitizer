@@ -35,7 +35,6 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
 2. Create a **new** Seeq Data Lab project and open the **Terminal** window
 
-3. Download the most recent [wheel file](https://github.com/eparsonnet93/seeq-plot-digitizer/tree/main/dist). This can again be done by downloading the repository as a ZIP file and navigating to the `seeq-plot-digitizer/dist/` directory.
+3. (In SDL Terminal) Run `pip install seeq_plot_digitizer`
 
-4. (In SDL Terminal) Run `pip install seeq_plot_digitizer-<version>-py3-none-any.whl` replacing `<version>` with the version matching the `.whl` file you downloaded.
-5. (In SDL Terminal) Run `python -m seeq.addons.plot_digitizer [--users <users_list> --groups <groups_list>]`
+4. (In SDL Terminal) Run `python -m seeq.addons.plot_digitizer [--users <users_list> --groups <groups_list>]`. Then follow the prompt.
