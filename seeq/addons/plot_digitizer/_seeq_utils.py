@@ -288,8 +288,8 @@ def format_time_stamp_for_seeq_capsule(timestamp:'str')->'str':
     )
 
 def create_and_push_formula(
-    curve_set:'str', curve_name:'str', storage_id:'str', 
-    x_axis_id:'str', REGION_OF_INTEREST:'bool', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
+    curve_set:'str', curve_name:'str', storage_id:'str', x_axis_id:'str', REGION_OF_INTEREST:'bool', 
+    interpolation_method:'str ("linear", "cubic")'='cubic', y_axis_id:'str'=None, quiet:'bool'=True)->'pd.DataFrame':
     
     if not REGION_OF_INTEREST:
         # generate the first formula to pass the plot digitizer storage to external calc
@@ -304,10 +304,19 @@ def create_and_push_formula(
         # formula name
         formula_name = '{}: {}'.format(curveSet, curveName)
 
-        formula_formatter = """PlotDigitizer_Show2({}, {}, 
+        if interpolation_method == 'cubic':
+
+            formula_formatter = """PlotDigitizer_ShowCubic({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
+        elif interpolation_method == 'linear':
+            formula_formatter = """PlotDigitizer_ShowLinear({}, {}, 
+    "{}".toSignal(), 
+    "{}".toSignal()
+)"""
+        else:
+            raise ValueError('interpolation_method {} not allowed. Allowed values are "linear" and "cubic"'.format(interpolation_method))
 
         formula_string = formula_formatter.format(signal_notator, template, curveSet, curveName)
         
