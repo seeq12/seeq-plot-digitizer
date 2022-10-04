@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installing Plot Digitizer &mdash; seeq-plot-digitizer 0.1.4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/seeq-favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="END USER LICENSE AGREEMENT" href="license.html" />
+    <link rel="prev" title="Release Notes" href="releasenotes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #e3e3e3" >
+            <a href="index.html" class="icon icon-home"> seeq-plot-digitizer
+            <img src="_static/Seeq_logo_darkPurple_sm.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.1.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Release Notes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #e3e3e3" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">seeq-plot-digitizer</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Installing Plot Digitizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installing-plot-digitizer">
+<span id="install"></span><h1>Installing Plot Digitizer<a class="headerlink" href="#installing-plot-digitizer" title="Permalink to this headline"></a></h1>
+<p>The latest build of the project can be found <a class="reference external" href="https://pypi.org/project/seeq-plot-digitizer/">here</a> as a wheel file. The
+file is published as a courtesy to the user, and it does not imply any obligation for support from the publisher.</p>
+<p><strong>Requires Seeq &gt;= R56</strong></p>
+<ol class="arabic">
+<li><p>Install the required external calculation scripts.</p>
+<p>a. Manually download the <a class="reference external" href="https://github.com/seeq12/seeq-plot-digitizer">Plot Digitizer repository</a>. To do so, click the green <code class="docutils literal notranslate"><span class="pre">Code</span></code> button, then Download ZIP</p>
+ <img src="_static/zip_download.png" style="width:50%;">
+<p>b. <strong>Unzip</strong> repository after downloading</p>
+<p>c. Open the <code class="docutils literal notranslate"><span class="pre">external_calculation</span></code> (<em>i.e.</em>, <code class="docutils literal notranslate"><span class="pre">seeq-plot-digitizer/external_calculation</span></code>) folder from the repository you just downloaded.</p>
+<p>d. <strong>Move</strong> (or copy and paste) the <code class="docutils literal notranslate"><span class="pre">PltDgz</span></code> folder <strong>and its contents</strong> to the <code class="docutils literal notranslate"><span class="pre">python/user</span></code> external calculation folder on the machine where Seeq server is running, (this is typically <code class="docutils literal notranslate"><span class="pre">C:/Seeq/plugins/external-calculation/python/user/</span></code> or similar).</p>
+ <img src="_static/external_calc_upload.png" style="width:40%;">
+<p><strong>Very Important!</strong> Once the <code class="docutils literal notranslate"><span class="pre">PltDgz</span></code> folder is created, be sure to never delete it. If you wish to make changes to the scripts contained therein, be sure to change the scripts themselves, never deleting, nor changing the name of the <code class="docutils literal notranslate"><span class="pre">PltDgz</span></code> folder!</p>
+</li>
+<li><p>Create a <strong>new</strong> Seeq Data Lab project and open the <strong>Terminal</strong> window</p></li>
+<li><p>(In SDL Terminal) Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">seeq-plot-digitizer</span></code></p></li>
+<li><p>(In SDL Terminal) Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">seeq.addons.plot_digitizer</span> <span class="pre">[--users</span> <span class="pre">&lt;users_list&gt;</span> <span class="pre">--groups</span> <span class="pre">&lt;groups_list&gt;]</span></code>. Then follow the prompt.</p></li>
+</ol>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="releasenotes.html" class="btn btn-neutral float-left" title="Release Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="license.html" class="btn btn-neutral float-right" title="END USER LICENSE AGREEMENT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eric Parsonnet.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

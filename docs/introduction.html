@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to Plot Digitizer &mdash; seeq-plot-digitizer 0.1.4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/seeq-favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Use Cases" href="use_cases.html" />
+    <link rel="prev" title="Welcome to documentation for Plot Digitizer in Seeq" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #e3e3e3" >
+            <a href="index.html" class="icon icon-home"> seeq-plot-digitizer
+            <img src="_static/Seeq_logo_darkPurple_sm.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.1.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#plot-digitizer-terminology">Plot Digitizer Terminology</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#asset-hierarchy">Asset hierarchy</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #e3e3e3" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">seeq-plot-digitizer</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Introduction to Plot Digitizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction-to-plot-digitizer">
+<h1>Introduction to Plot Digitizer<a class="headerlink" href="#introduction-to-plot-digitizer" title="Permalink to this headline"></a></h1>
+<p><strong>Plot Digitizer</strong> helps to steamline analysis of data as it compares to theoretical or expected behavior, which is documented in paper or pdf form, by allowing the user to directly digitize curves from such design documents.</p>
+<img src="_static/digitize.png" alt="image" width="100%">
+<p>Plot digitizer also allows the user to define “regions of interest” (ROIs), by selecting a region on the plot. Doing so will create a condition in <a class="reference external" href="https://www.seeq.com/product/workbench">Seeq Workbench</a>, selecting for data points that fall within the region. Plot digitizer seemlessly integrates with Seeq, creating sets of curves (formulas) and regions of interest (conditions) scoped to a parent asset.</p>
+<img src="_static/roi.png" alt="image" width="100%">
+<p>Customer facilities contain many pieces of equipment with Original Equipment Manufacturer (OEM) design data documented in paper or pdf form.  One common type of data are design curves, which guarantee the performance of one or more parameters as they relate to another.</p>
+<p>A common example are pump and compressor curves.  They usually compare a rotating equipment’s throughput to the expected head (pressure), efficiency, and power.  It is in the interest of the operating facility to keep equipment running within a certain region of the curve, as this can directly impact equipment reliability and power consumption.  Comparing equipment operation against design curves also allows engineers to assess losses in efficiency to justify either design changes or equipment overhaul.  This drives business decisions ranging from optimizing facilities to justifying capital investment. By obtaining a digital version of a design curve and overlaying it with data both in trend and XY plot, users can perform such analyses directly in Seeq.  Furthermore, by using conditions to identify periods of poor performance, one can easily help quantify the impact of off-design performance.</p>
+<p>Once design curve data data are in Seeq, the actual opportunity to extract value begins.  Some examples of analyses that could be leveraged in the rotating equipment space:</p>
+<ol class="arabic">
+<li><p>Identify operation off design</p>
+<p>a. Is it worth considering an equipment redesign</p>
+<p>b. Quantify losses due to losses off-design to justify capital</p>
+<p>c. Exception based monitoring for fleet of assets</p>
+</li>
+<li><p>Compare actual efficiency to OEM efficiency for each operating point</p>
+<p>a. Drive maintenance planning and prioritization</p>
+</li>
+<li><p>Overlay curves with operating data to compare performance/efficiency gains of a new design curve to existing operation</p>
+<p>a. Helps justify investment into design tweaks or changes</p>
+</li>
+<li><p>Use tools like clustering to identify regions of operation that require investigation and auto-generate capsules for those periods of interest</p></li>
+</ol>
+<p>The Plot Digitizer tool allows users to first calibrate axes and then pick points along an image to create a digital copy of a design curve (or region of interest).  The result is then pushed to a Seeq asset for use in monitoring and analysis.</p>
+<section id="plot-digitizer-terminology">
+<h2>Plot Digitizer Terminology<a class="headerlink" href="#plot-digitizer-terminology" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p><strong>Digitized Curve</strong>: The formula in Seeq resulting from  digitization of a curve using the Plot Digitizer addon.</p></li>
+<li><p><strong>Region of Interest</strong>: The condition in Seeq resulting from a region of interest definition using the Plot Digitzer tool.</p></li>
+<li><p><strong>Plot Image</strong>: A <code class="docutils literal notranslate"><span class="pre">.png</span></code> file of the plot that the user wishes to digitize.</p></li>
+<li><p><strong>Curve Set (Region Set)</strong>: A name given to a family of curves (or regions of interest). See <a class="reference internal" href="#asset-hierarchy"><span class="std std-ref">Asset hierarchy</span></a></p></li>
+<li><p><strong>Curve Name (Region Name)</strong>: A name give to a single digitized curve (or region or interest). See <a class="reference internal" href="#asset-hierarchy"><span class="std std-ref">Asset hierarchy</span></a></p></li>
+</ul>
+<section id="asset-hierarchy">
+<span id="id1"></span><h3>Asset hierarchy<a class="headerlink" href="#asset-hierarchy" title="Permalink to this headline"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Parent Asset
+│   Signal 1 (x-axis)
+│   Signal 2 (y-axis)
+│
+└───Curve Set 1
+│   │   My Curve 1
+│   │   My Curve 2
+│   
+└───Region Set 1
+    │   My Region 1
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to documentation for Plot Digitizer in Seeq" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="use_cases.html" class="btn btn-neutral float-right" title="Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eric Parsonnet.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
