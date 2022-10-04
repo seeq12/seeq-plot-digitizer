@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plot Digitizer User Guide &mdash; seeq-plot-digitizer 0.1.4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/seeq-favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Release Notes" href="releasenotes.html" />
+    <link rel="prev" title="Use Cases" href="use_cases.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #e3e3e3" >
+            <a href="index.html" class="icon icon-home"> seeq-plot-digitizer
+            <img src="_static/Seeq_logo_darkPurple_sm.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.1.4
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prepare-the-plot-you-wish-to-digitize">Prepare the Plot you wish to digitize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prepare-in-your-workbook">Prepare in your workbook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-digitization">Plot Digitization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#region-of-interest">Region of Interest</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releasenotes.html">Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #e3e3e3" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">seeq-plot-digitizer</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Plot Digitizer User Guide</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="plot-digitizer-user-guide">
+<span id="userguide"></span><h1>Plot Digitizer User Guide<a class="headerlink" href="#plot-digitizer-user-guide" title="Permalink to this headline"></a></h1>
+<p>Seeq Plot Digitizer is an addon tool designed to <strong>streamline digitization of existing design documents in paper form</strong>.
+<img src="_static/digitize.png" style="width:100%;"></p>
+<p>The Plot Digitizer tool can also be used to <strong>define a region of interest (ROI)</strong>, resulting in creation of a new condition in Workbench.
+<img src="_static/roi.png" style="width:100%;"></p>
+<section id="prepare-the-plot-you-wish-to-digitize">
+<h2>Prepare the Plot you wish to digitize<a class="headerlink" href="#prepare-the-plot-you-wish-to-digitize" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Retrieve a <code class="docutils literal notranslate"><span class="pre">.png</span></code> file of the plot you wish to digitize. For example purposes we will use a plot of relative humidity vs. Temperature for various wet bulb temperatures:</p></li>
+</ul>
+<img src="_static/plot_image.png" style="width:50%;">
+</section>
+<section id="prepare-in-your-workbook">
+<h2>Prepare in your workbook<a class="headerlink" href="#prepare-in-your-workbook" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Add at least two signals. One signal should correspond to the x-axis of the plot image (which you wish to digitize) and the other should correspond to the y-axis. In this case we add Temperature for X and Relative Humidity for Y:</p></li>
+</ul>
+<img src="_static/workbook_pre.png" style="width:100%;">
+</section>
+<section id="plot-digitization">
+<h2>Plot Digitization<a class="headerlink" href="#plot-digitization" title="Permalink to this headline"></a></h2>
+<ol class="arabic simple">
+<li><p>Open the <strong>Plot Digitizer</strong> Tool in the addon panel</p></li>
+</ol>
+<img src="_static/plot_digitizer1.png" style="width:100%;">
+<ol class="arabic simple" start="2">
+<li><p>Upload your image using the image upload button. After completion, your image will appear in the tool</p></li>
+</ol>
+<img src="_static/plot_digitizer2.png" style="width:100%;">
+<ol class="arabic simple" start="3">
+<li><p>Following the instructions listed in the instruction box, calibrate the axis. This is achieved by first clicking <code class="docutils literal notranslate"><span class="pre">Select</span></code> for one of the four calibration points (x_min, x_max, y_min, y_max), then clicking on the relavant point on the plot image. Once you have selected a calibration point, enter its value and click <code class="docutils literal notranslate"><span class="pre">Approve</span></code>.</p></li>
+</ol>
+<img src="_static/plot_digitizer3_1.png" style="width:100%;">
+<ul class="simple">
+<li><p><strong>Note</strong>, to assist in precision clicking, you can use the zoom tool on the plot image, by selecting it and then clicking and dragging over a region you wish to zoom in on.</p></li>
+</ul>
+<img src="_static/toolbar.png" style="width:20%;">
+<ul class="simple">
+<li><p>Once all four calibration points have been selected, you are ready to digitize the curve. You can edit calibration points later by clicking <code class="docutils literal notranslate"><span class="pre">Edit</span></code>.</p></li>
+</ul>
+<img src="_static/plot_digitizer3_2.png" style="width:100%;">
+<ol class="arabic simple" start="4">
+<li><p><strong>Digitize the Curve</strong> by clicking directly on the curve of your choosing. Zooming in on it (using the toolbar) may assist with precision.</p></li>
+</ol>
+<ul class="simple">
+<li><p>You can choose from either cubic spline interpolation, or linear interpolation. Cubic spline will smooth corners, while linear will result in a set of piecewise linear curves.</p></li>
+</ul>
+<img src="_static/plot_digitizer4.png" style="width:100%;">
+<ol class="arabic simple" start="5">
+<li><p>Set X and Y axis signals, choose the parent Asset to which to scope the resulting digitized curves, enter a Curve Set Name and Curve Name, and click <code class="docutils literal notranslate"><span class="pre">Push</span> <span class="pre">to</span> <span class="pre">Seeq</span></code>.</p></li>
+</ol>
+<img src="_static/plot_digitizer5.png" style="width:100%;">
+<ul class="simple">
+<li><p>Once you have finished, you may digitize another curve (or region of interest by selecting the <code class="docutils literal notranslate"><span class="pre">Region</span> <span class="pre">of</span> <span class="pre">Interest</span></code> radio button) by selecting <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">Curve/ROI</span></code>, or simply close the window if you are finished.</p></li>
+<li><p>The results will now appear in your workbook. Here I show the results if digitizing the curve corresponding to a wet bulb of 40 and 70:</p></li>
+</ul>
+<img src="_static/plot_digitizer6.png" style="width:100%;">
+</section>
+<section id="region-of-interest">
+<h2>Region of Interest<a class="headerlink" href="#region-of-interest" title="Permalink to this headline"></a></h2>
+<ol class="arabic simple">
+<li><p>After calibrating axes, select the radio button <code class="docutils literal notranslate"><span class="pre">Region</span> <span class="pre">of</span> <span class="pre">Interest</span></code>. Define a region by clicking on the plot image (<strong>the red dashed line is auto-completed, you do not need to complete loop</strong>). After specifying a region set name and region name, click to <code class="docutils literal notranslate"><span class="pre">Push</span> <span class="pre">to</span> <span class="pre">Seeq</span></code>.</p></li>
+</ol>
+<img src="_static/roi1.png" style="width:100%;">
+<img src="_static/roi2.png" style="width:100%;">
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="use_cases.html" class="btn btn-neutral float-left" title="Use Cases" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="releasenotes.html" class="btn btn-neutral float-right" title="Release Notes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eric Parsonnet.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
