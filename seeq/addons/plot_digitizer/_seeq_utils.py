@@ -306,12 +306,12 @@ def create_and_push_formula(
 
         if interpolation_method == 'cubic':
 
-            formula_formatter = """PlotDigitizer_ShowCubic({}, {}, 
+            formula_formatter = """PltDgz_ShowCubic({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
         elif interpolation_method == 'linear':
-            formula_formatter = """PlotDigitizer_ShowLinear({}, {}, 
+            formula_formatter = """PltDgz_ShowLinear({}, {}, 
     "{}".toSignal(), 
     "{}".toSignal()
 )"""
@@ -340,7 +340,7 @@ def create_and_push_formula(
         # formula name
         formula_name = '{}: {} (ROI)'.format(curveSet, curveName)
 
-        formula_formatter = """PlotDigitizer_ROI({}, {}, {},
+        formula_formatter = """PltDgz_ROI({}, {}, {},
     "{}".toSignal(), 
     "{}".toSignal()
 ).toCondition()"""

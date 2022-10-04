@@ -30,9 +30,9 @@ def get_plotdigitizer_package(
     formulas_api:'seeq.sdk.apis.formulas_api.FormulasApi'
 ) -> 'seeq.sdk.models.formula_package_output_v1.FormulaPackageOutputV1':
     try:
-        return formulas_api.get_package(package_name='PlotDigitizer')
+        return formulas_api.get_package(package_name='PltDgz')
     except ApiException:
-        raise ValueError(f'Unable to access PlotDigitizer package. Ensure that external calculation scripts are installed correctly.')
+        raise ValueError(f'Unable to access PltDgz package. Ensure that external calculation scripts are installed correctly.')
 
 def set_acl_read_permissions_true(package_id:'str', user_id:'str', 
                  items_api:'seeq.sdk.apis.items_api.ItemsApi'
