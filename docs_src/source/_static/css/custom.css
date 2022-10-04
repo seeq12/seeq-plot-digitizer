@@ -1,0 +1,54 @@
+
+
+.wy-grid-for-nav {
+    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) > dt {
+    /*background: #e2d7eb;*/
+    background: #e3e3e3;
+    color: #7030A0;
+    border-top: 3px solid #9E7BB9;
+}
+
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: #9E7BB9;
+}
+
+.wy-side-nav-search .wy-dropdown > a, .wy-side-nav-search > a {
+    color: #7030A0;
+    /*color: #ffffff;*/
+}
+
+.wy-side-nav-search > div.version {
+    color: #7030A0;
+    /*color: #ffffff;*/
+}
+
+.wy-nav-side {
+    background: #351852;
+    /*background: #d9d2e1;*/
+}
+
+/*.wy-menu-vertical li.toctree-l2.current > a, .wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a {*/
+/*    background: #c9c9c9;*/
+/*}*/
+
+/*.wy-menu-vertical a {*/
+/*    color: #222222;*/
+/*}*/
+
+/*.wy-menu-vertical a {*/
+/*    color: #cdcdcd;*/
+/*}*/
+
+/*!*.wy-alert-title {*!*/
+/*!*    color: #404040;*!*/
+/*!*    background: #e1e4e5*!*/
+/*!*}*!*/
+
+/*.wy-menu-vertical a:hover {*/
+/*    background-color: #bbbbbb;*/
+/*    cursor: pointer*/
+/*}*/
+

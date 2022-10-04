@@ -7,7 +7,7 @@ Digitization tools for Seeq
 
 ## User Guide
 
-Seeq Plot Digitizer is an addon tool designed to **streamline digitization of existing or legacy data**.
+Seeq Plot Digitizer is an addon tool designed to **streamline digitization of existing design documents in paper form**.
 <img src="imgs/digitize.png" style="width:100%;">
 
 The Plot Digitizer tool can also be used to **define a region of interest (ROI)**, resulting in creation of a new condition in Workbench.
@@ -30,7 +30,7 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
     c. Open the `external_calculation` (*i.e.*, `seeq-plot-digitizer/external_calculation`) folder from the repository you just downloaded.
 
-    d. **Move** (or copy and paste) the `PlotDigitizer` folder **and its contents** to the `python/user` external calculation folder on the machine where Seeq server is running, (this is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
+    d. **Move** (or copy and paste) the `PltDgz` folder **and its contents** to the `python/user` external calculation folder on the machine where Seeq server is running, (this is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
 
 	<img src="imgs/external_calc_upload.png" style="width:40%;">
 
