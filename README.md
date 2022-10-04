@@ -34,6 +34,8 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
 	<img src="imgs/external_calc_upload.png" style="width:40%;">
 
+    **Very Important!** Once the `PltDgz` folder is created, be sure to never delete it. If you wish to make changes to the scripts contained therein, be sure to change the scripts themselves, never deleting, nor changing the name of the `PltDgz` folder!  
+
 
 2. Create a **new** Seeq Data Lab project and open the **Terminal** window
 
