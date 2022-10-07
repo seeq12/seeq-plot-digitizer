@@ -35,19 +35,26 @@ Once design curve data data are in Seeq, the actual opportunity to extract value
 
 **1. Identify operation off design**
 
-    a. Is it worth considering an equipment redesign
+<p>
+    &ensp; a. Is it worth considering an equipment redesign<br>
+    &ensp; b. Quantify losses due to losses off-design to justify capital<br>
+    &ensp; c. Exception based monitoring for fleet of assets
+</p>
 
-    b. Quantify losses due to losses off-design to justify capital
-
-    c. Exception based monitoring for fleet of assets
 
 **2. Compare actual efficiency to OEM efficiency for each operating point**
 
-    a. Drive maintenance planning and prioritization
+<p>
+    &ensp; a. Drive maintenance planning and prioritization<br>
+</p>
+
 
 **3. Overlay curves with operating data to compare performance/efficiency gains of a new design curve to existing operation**
 
-    a. Helps justify investment into design tweaks or changes
+<p>
+    &ensp; a. Helps justify investment into design tweaks or changes<br>
+</p>
+
 
 **4. Use tools like clustering to identify regions of operation that require investigation and auto-generate capsules for those periods of interest**
 
