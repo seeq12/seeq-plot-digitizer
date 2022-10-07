@@ -10,7 +10,6 @@ Welcome to documentation for Plot Digitizer in Seeq
    :caption: Contents:
 
    Introduction <introduction.md>
-   Use Cases <use_cases.md>
    User Guide <user_guide.md>
    Release Notes <releasenotes.md>
    Installation <installation.md>
