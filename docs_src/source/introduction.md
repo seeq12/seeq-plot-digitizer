@@ -33,7 +33,7 @@ A common example are pump and compressor curves.  They usually compare a rotatin
 
 Once design curve data data are in Seeq, the actual opportunity to extract value begins.  Some examples of analyses that could be leveraged in the rotating equipment space:
 
-1. Identify operation off design
+**1. Identify operation off design**
 
     a. Is it worth considering an equipment redesign
 
@@ -41,15 +41,15 @@ Once design curve data data are in Seeq, the actual opportunity to extract value
 
     c. Exception based monitoring for fleet of assets
 
-2. Compare actual efficiency to OEM efficiency for each operating point
+**2. Compare actual efficiency to OEM efficiency for each operating point**
 
     a. Drive maintenance planning and prioritization
 
-3. Overlay curves with operating data to compare performance/efficiency gains of a new design curve to existing operation
+**3. Overlay curves with operating data to compare performance/efficiency gains of a new design curve to existing operation**
 
     a. Helps justify investment into design tweaks or changes
 
-4. Use tools like clustering to identify regions of operation that require investigation and auto-generate capsules for those periods of interest
+**4. Use tools like clustering to identify regions of operation that require investigation and auto-generate capsules for those periods of interest**
 
 
 The Plot Digitizer tool allows users to first calibrate axes and then pick points along an image to create a digital copy of a design curve (or region of interest).  The result is then pushed to a Seeq asset for use in monitoring and analysis.
