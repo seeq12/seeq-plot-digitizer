@@ -11,9 +11,9 @@ Here is a short overview video of **Plot Digitzer in Seeq**
   </summary>
 
 <video src="_static/intro.mov"
-poster="_static/intoduction.png"
+poster="_static/introduction.png"
 controls="controls" muted="muted" class="d-block rounded-bottom-2 width-fit" style="max-width:700px; background:
-transparent url('_static/intoduction.png') no-repeat 0 0; -webkit-background-size:cover; -moz-background-size:cover;
+transparent url('_static/introduction.png') no-repeat 0 0; -webkit-background-size:cover; -moz-background-size:cover;
 -o-background-size:cover; background-size:cover;"
 webboost_found_paused="true" webboost_processed="true">
 </video>
