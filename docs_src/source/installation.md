@@ -38,7 +38,7 @@ webboost_found_paused="true" webboost_processed="true">
 
     c. Open the `external_calculation` (*i.e.*, `seeq-plot-digitizer/external_calculation`) folder from the repository you just downloaded.
 
-    d. **Move** (or copy and paste) the `PltDgz` folder **and its contents** to the `python/user` external calculation folder on the machine where Seeq server is running, (this is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
+    d. **Move** (copy and paste) the `PltDgz` folder **and its contents** to the `python/user` external calculation folder on the remote agent or local machine where Seeq server is running (the external calculation folder is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
 
 	<img src="_static/external_calc_upload.png" style="width:40%;">
 
