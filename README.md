@@ -18,7 +18,7 @@ The Plot Digitizer tool can also be used to **define a region of interest (ROI)*
 The latest build of the project can be found [here](https://pypi.org/project/seeq-plot-digitizer/) as a wheel file. The
 file is published as a courtesy to the user, and it does not imply any obligation for support from the publisher.
 
-**Requires Seeq >= R56**
+**Requires 58 > Seeq >= R56** (updated versions are in the works.)
 
 1. Install the required external calculation scripts. 
 
@@ -30,7 +30,7 @@ file is published as a courtesy to the user, and it does not imply any obligatio
 
     c. Open the `external_calculation` (*i.e.*, `seeq-plot-digitizer/external_calculation`) folder from the repository you just downloaded.
 
-    d. **Move** (or copy and paste) the `PltDgz` folder **and its contents** to the `python/user` external calculation folder on the machine where Seeq server is running, (this is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
+    d. **Move** (copy and paste) the `PltDgz` folder **and its contents** to the `python/user` external calculation folder on the remote agent or local machine where Seeq server is running (the external calculation folder is typically `C:/Seeq/plugins/external-calculation/python/user/` or similar).
 
 	<img src="imgs/external_calc_upload.png" style="width:40%;">
 
