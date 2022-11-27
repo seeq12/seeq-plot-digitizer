@@ -4,7 +4,7 @@
 The latest build of the project can be found [here](https://pypi.org/project/seeq-plot-digitizer/) as a wheel file. The
 file is published as a courtesy to the user, and it does not imply any obligation for support from the publisher.
 
-**Requires Seeq >= R56**
+**Requires 58 > Seeq >= R56** (updated versions are in the works.)
 
 
 ## Installation Instructions
