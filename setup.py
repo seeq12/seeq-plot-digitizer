@@ -42,10 +42,10 @@ setup_args = dict(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'bokeh>=3.3.0',
+        'bokeh>=3.1.1',
         'imageio>=2.19.3',
-        'numpy>=1.26.1',
-        'pandas>=2.1.1'
+        'numpy>=1.24.4',
+        'pandas>=2.0.3'
     ],
     classifiers=[
         "Programming Language :: Python :: 3.8",
